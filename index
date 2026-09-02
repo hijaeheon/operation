@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>119 소방 작전도</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pretendard", sans-serif; background: #0b1220; color: #e2e8f0; overflow: hidden; }
+#app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+
+/* ── 상단 헤더 ── */
+#topBar { flex-shrink: 0; padding: 8px 12px 6px; background: rgba(13,20,40,0.97); border-bottom: 1px solid #1e293b; }
+#topBar h2 { font-size: 15px; font-weight: 700; color: #f8fafc; margin-bottom: 5px; }
+#vehicleSummaryBar { font-size: 11px; color: #cbd5e1; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 6px 8px; line-height: 1.9; display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+.vs-label { color: #64748b; font-weight: 700; margin-right: 4px; }
+#vTotalDisplay { color: #facc15; font-size: 13px; font-family: monospace; }
+.cnt-input { width: 30px; background: #111827; border: 1px solid #334155; border-radius: 5px; color: #e2e8f0; font-size: 11px; padding: 2px 3px; text-align: center; outline: none; font-family: monospace; }
+.cnt-input.wide { width: 40px; }
+.cnt-input:focus { border-color: #38bdf8; }
+
+/* ── 컨트롤 바 (건물생성 + 방향선택) ── */
+#controlsBar { flex-shrink: 0; padding: 8px 12px; background: rgba(13,20,40,0.9); border-bottom: 1px solid #1e293b; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+#floorControls { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+#floorControls label { font-size: 12px; color: #e2e8f0; display: flex; align-items: center; gap: 4px; }
+.num-input { width: 46px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 13px; padding: 5px 4px; text-align: center; outline: none; }
+#buildBtn { background: #1d4ed8; color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; padding: 7px 12px; cursor: pointer; }
+#fullResetBtn { background: #7f1d1d; color: #fca5a5; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; padding: 7px 12px; cursor: pointer; }
+
+#faceSelector { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.compass { display: grid; grid-template-columns: 40px 54px 40px; grid-template-rows: 30px 54px 30px; grid-template-areas: ". top ." "left center right" ". bottom ."; gap: 3px; }
+.face-btn { border: 1.5px solid #334155; background: #111827; color: #94a3b8; border-radius: 7px; font-size: 10px; font-weight: 700; line-height: 1.2; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.face-btn span { display: block; font-size: 8px; font-weight: 500; color: #64748b; }
+.face-btn.active { border-color: #38bdf8; color: #38bdf8; background: #0f2942; box-shadow: 0 0 8px rgba(56,189,248,.4); }
+.face-btn.active span { color: #7dd3fc; }
+.face-top { grid-area: top; } .face-left { grid-area: left; } .face-right { grid-area: right; } .face-bottom { grid-area: bottom; }
+.compass-center { grid-area: center; display: flex; align-items: center; justify-content: center; font-size: 22px; background: #0d1929; border: 1px solid #1e293b; border-radius: 10px; transform: perspective(200px) rotateX(12deg); box-shadow: 0 4px 10px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.03); }
+.face-hint { font-size: 10px; color: #64748b; }
+.face-hint strong { color: #38bdf8; }
+
+/* ── 메인 영역 ── */
+#mainArea { flex: 1; display: flex; overflow: hidden; }
+#buildingArea { flex: 1; overflow-y: auto; padding: 8px; }
+.floor-zone { display: flex; align-items: stretch; min-height: 48px; margin-bottom: 3px; border-radius: 7px; border: 1.5px solid #1e293b; overflow: hidden; }
+.floor-zone.ground { background: #0f1f35; }
+.floor-zone.basement { background: #0a1520; }
+.floor-zone.roof { background: #1a0a2e; border-color: #7c3aed; min-height: 38px; }
+.floor-label { width: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: monospace; background: #1e293b; color: #94a3b8; }
+.floor-zone.basement .floor-label { background: #162032; color: #64748b; }
+.floor-zone.roof .floor-label { background: #2d1b69; color: #c4b5fd; }
+.floor-content { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 5px 7px; min-height: 48px; }
+.floor-zone.roof .floor-content { min-height: 38px; }
+.drop-zone.drag-over { outline: 2px dashed #38bdf8; background: rgba(56,189,248,0.1); }
+#noBuildingMsg { color: #475569; font-size: 12px; text-align: center; margin-top: 30px; line-height: 1.8; }
+
+#sidePanel { width: 190px; flex-shrink: 0; border-left: 1px solid #1e293b; display: flex; flex-direction: column; overflow: hidden; }
+.section-label { font-size: 10px; color: #64748b; font-weight: 700; letter-spacing: 0.04em; padding: 8px 8px 4px; display: block; }
+#paletteGrid { padding: 0 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.v-palette-item { background: #111827; border: 1.5px solid; border-radius: 9px; padding: 8px 4px; text-align: center; font-size: 10px; font-weight: 700; color: #e2e8f0; cursor: grab; user-select: none; touch-action: none; -webkit-tap-highlight-color: transparent; }
+.p-emoji { font-size: 18px; display: block; margin-bottom: 2px; }
+#resourceSection { margin-top: auto; flex-shrink: 0; padding: 6px 8px 10px; border-top: 1px solid #1e293b; }
+.resource-zone { min-height: 76px; border: 1.5px dashed #334155; border-radius: 10px; padding: 6px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px; background: #0d1929; overflow-y: auto; max-height: 140px; }
+
+/* ── 차량 칩 (배치된 아이콘) ── */
+.v-chip { position: relative; display: inline-flex; flex-direction: column; align-items: center; gap: 1px; min-width: 50px; padding: 4px 6px 5px; border-radius: 8px; border: 2px solid; background: #0f172a; font-size: 9px; font-weight: 700; color: #e2e8f0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.v-chip .v-emoji { font-size: 15px; line-height: 1; }
+.v-chip .v-label { font-size: 9px; white-space: nowrap; }
+.v-chip .v-status { font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: 4px; margin-top: 1px; }
+.v-chip .v-remove { position: absolute; top: -6px; right: -6px; width: 15px; height: 15px; background: #1e293b; color: #f87171; border-radius: 50%; font-size: 9px; display: flex; align-items: center; justify-content: center; }
+.v-chip.status-1 { border-color: #f87171 !important; }
+.v-chip.status-1 .v-status { background: #7f1d1d; color: #fca5a5; }
+.v-chip.status-2 { border-color: #facc15 !important; }
+.v-chip.status-2 .v-status { background: #78350f; color: #fde68a; }
+.v-chip.status-3 { border-color: #4ade80 !important; }
+.v-chip.status-3 .v-status { background: #14532d; color: #86efac; }
+
+#dragGhost { position: fixed; pointer-events: none; z-index: 9999; display: none; flex-direction: column; align-items: center; gap: 2px; background: #1e3a5f; border: 2px solid #38bdf8; border-radius: 9px; padding: 6px 8px; font-size: 10px; font-weight: 700; color: #e2e8f0; opacity: 0.92; box-shadow: 0 6px 20px rgba(0,0,0,.5); }
+#dragGhost .g-emoji { font-size: 18px; }
+
+@media (max-width: 640px) {
+  #mainArea { flex-direction: column; }
+  #sidePanel { width: 100%; border-left: none; border-top: 1px solid #1e293b; max-height: 44vh; }
+  #paletteGrid { grid-template-columns: repeat(5, 1fr); }
+  #resourceSection { margin-top: 0; }
+  #controlsBar { flex-direction: column; align-items: stretch; }
+  #faceSelector { align-self: center; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header id="topBar">
+    <h2>🗺️ 119 소방 작전도</h2>
+    <div id="vehicleSummaryBar">
+      <span class="vs-label">출동정보</span>
+      차량: <strong id="vTotalDisplay">0</strong>
+      (펌:<input class="cnt-input" id="cnt-pump" type="number" min="0" value="0">
+      /탱:<input class="cnt-input" id="cnt-tank" type="number" min="0" value="0">
+      /구:<input class="cnt-input" id="cnt-rescue" type="number" min="0" value="0">
+      /급:<input class="cnt-input" id="cnt-ambulance" type="number" min="0" value="0">
+      /기타:<input class="cnt-input" id="cnt-etc" type="number" min="0" value="0">),
+      전체탑승인원(<input class="cnt-input wide" id="cnt-crew" type="number" min="0" value="0">)
+    </div>
+  </header>
+
+  <div id="controlsBar">
+    <div id="floorControls">
+      <label>지상 <input class="num-input" id="groundFloors" type="number" min="1" max="150" value="5"> 층</label>
+      <label>지하 <input class="num-input" id="basementFloors" type="number" min="0" max="20" value="1"> 층</label>
+      <button id="buildBtn">🏢 건물 생성</button>
+      <button id="fullResetBtn">🔄 전체 초기화</button>
+    </div>
+    <div id="faceSelector">
+      <div class="compass">
+        <button class="face-btn face-top" data-face="A">A<span>정면</span></button>
+        <button class="face-btn face-left" data-face="B">B<span>좌측</span></button>
+        <div class="compass-center">🏢</div>
+        <button class="face-btn face-right" data-face="D">D<span>우측</span></button>
+        <button class="face-btn face-bottom" data-face="C">C<span>후면</span></button>
+      </div>
+      <div class="face-hint">현재 보는 면: <strong id="currentFaceLabel">A(정면)</strong></div>
+    </div>
+  </div>
+
+  <div id="mainArea">
+    <div id="buildingArea"></div>
+    <div id="sidePanel">
+      <span class="section-label">소방차량 — 층/자원대기소로 끌어다 배치</span>
+      <div id="paletteGrid"></div>
+      <div id="resourceSection">
+        <div class="section-label" style="padding:0 0 4px">🅿️ 자원대기소</div>
+        <div id="resourceContent" class="drop-zone resource-zone" data-zone-type="resource"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dragGhost"><span class="g-emoji"></span><span class="g-label"></span></div>
+
+<script>
+const STORAGE_KEY = 'fireOpsBoardV2';
+
+const VEHICLE_TYPES = [
+  { key: 'pump',      label: '펌프차',   emoji: '🚒', color: '#38bdf8' },
+  { key: 'rescue',    label: '구조대차', emoji: '🦺', color: '#f472b6' },
+  { key: 'ladder',    label: '고가',     emoji: '🏗️', color: '#facc15' },
+  { key: 'artic',     label: '굴절',     emoji: '🪜', color: '#a3e635' },
+  { key: 'ambulance', label: '구급',     emoji: '🚑', color: '#4ade80' }
+];
+const STATUS_LABELS = ['', '출동 중', '임무대기중', '활동중'];
+const FACE_NAMES = { A: 'A(정면)', B: 'B(좌측)', C: 'C(후면)', D: 'D(우측)' };
+const SUMMARY_KEYS = ['pump', 'tank', 'rescue', 'ambulance', 'etc', 'crew'];
+
+function floorIdsFor(g, b) {
+  const ids = ['RF'];
+  for (let f = g; f >= 1; f--) ids.push(f + 'F');
+  for (let i = 1; i <= b; i++) ids.push('B' + i);
+  return ids;
+}
+function floorLabel(id) {
+  if (id === 'RF') return '옥상';
+  if (id.startsWith('B')) return '지하' + id.slice(1);
+  return id.replace('F', '층');
+}
+function floorType(id) {
+  if (id === 'RF') return 'roof';
+  if (id.startsWith('B')) return 'basement';
+  return 'ground';
+}
+
+function defaultState() {
+  const ground = 5, basement = 1;
+  const floors = {};
+  floorIdsFor(ground, basement).forEach(id => { floors[id] = { A: [], B: [], C: [], D: [] }; });
+  return {
+    ground, basement, currentFace: 'A', floors, resource: [],
+    summary: { pump: 0, tank: 0, rescue: 0, ambulance: 0, etc: 0, crew: 0 }
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    const d = defaultState();
+    return {
+      ground: parsed.ground || d.ground,
+      basement: (parsed.basement !== undefined) ? parsed.basement : d.basement,
+      currentFace: parsed.currentFace || 'A',
+      floors: parsed.floors || d.floors,
+      resource: parsed.resource || [],
+      summary: Object.assign({}, d.summary, parsed.summary || {})
+    };
+  } catch (e) { return defaultState(); }
+}
+function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+let state = loadState();
+let dragType = null, currentHL = null;
+
+/* ── 건물 생성 ── */
+function generateBuilding(g, b) {
+  g = Math.min(Math.max(1, g || 1), 150);
+  b = Math.min(Math.max(0, b || 0), 20);
+  state.ground = g; state.basement = b;
+  const floors = {};
+  floorIdsFor(g, b).forEach(id => { floors[id] = { A: [], B: [], C: [], D: [] }; });
+  state.floors = floors;
+  document.getElementById('groundFloors').value = g;
+  document.getElementById('basementFloors').value = b;
+  saveState();
+  renderAll();
+}
+
+/* ── 렌더링 ── */
+function makeChip(entry, containerRef) {
+  const type = VEHICLE_TYPES.find(t => t.key === entry.type) || VEHICLE_TYPES[0];
+  const div = document.createElement('div');
+  div.className = 'v-chip status-' + entry.status;
+  div.dataset.uid = entry.uid;
+  div.style.borderColor = type.color;
+  div.innerHTML =
+    '<span class="v-emoji">' + type.emoji + '</span>' +
+    '<span class="v-label">' + type.label + '</span>' +
+    (entry.status > 0 ? '<span class="v-status">' + STATUS_LABELS[entry.status] + '</span>' : '') +
+    '<span class="v-remove">✕</span>';
+  div.querySelector('.v-remove').addEventListener('click', ev => {
+    ev.stopPropagation();
+    removeEntry(entry.uid, containerRef);
+  });
+  div.addEventListener('click', ev => {
+    if (ev.target.classList.contains('v-remove')) return;
+    entry.status = (entry.status + 1) % 4;
+    saveState();
+    renderAll();
+  });
+  return div;
+}
+function removeEntry(uid, containerRef) {
+  if (containerRef === 'resource') {
+    state.resource = state.resource.filter(e => e.uid !== uid);
+  } else {
+    const arr = state.floors[containerRef][state.currentFace];
+    state.floors[containerRef][state.currentFace] = arr.filter(e => e.uid !== uid);
+  }
+  saveState();
+  renderAll();
+}
+
+function renderBuildingArea() {
+  const area = document.getElementById('buildingArea');
+  area.innerHTML = '';
+  const ids = floorIdsFor(state.ground, state.basement);
+  if (!ids.length) { area.innerHTML = '<div id="noBuildingMsg">지상/지하 층수를 입력하고<br>"건물 생성"을 눌러주세요.</div>'; return; }
+  ids.forEach(id => {
+    const row = document.createElement('div');
+    row.className = 'floor-zone ' + floorType(id);
+    row.innerHTML = '<div class="floor-label">' + floorLabel(id) + '</div>' +
+      '<div class="floor-content drop-zone" data-zone-type="floor" data-floor-id="' + id + '" id="fc-' + id + '"></div>';
+    area.appendChild(row);
+    const content = row.querySelector('.floor-content');
+    const list = (state.floors[id] && state.floors[id][state.currentFace]) || [];
+    list.forEach(entry => content.appendChild(makeChip(entry, id)));
+  });
+}
+function renderResourceArea() {
+  const zone = document.getElementById('resourceContent');
+  zone.innerHTML = '';
+  state.resource.forEach(entry => zone.appendChild(makeChip(entry, 'resource')));
+}
+function updateSummaryTotal() {
+  const s = state.summary;
+  const total = (s.pump || 0) + (s.tank || 0) + (s.rescue || 0) + (s.ambulance || 0) + (s.etc || 0);
+  document.getElementById('vTotalDisplay').textContent = total;
+}
+function renderAll() { renderBuildingArea(); renderResourceArea(); updateSummaryTotal(); }
+
+/* ── 면(A/B/C/D) 선택 ── */
+function setFace(face) {
+  state.currentFace = face;
+  document.querySelectorAll('.face-btn').forEach(b => b.classList.toggle('active', b.dataset.face === face));
+  document.getElementById('currentFaceLabel').textContent = FACE_NAMES[face];
+  saveState();
+  renderBuildingArea();
+}
+
+/* ── 팔레트(드래그 시작) ── */
+function setupPalette() {
+  const grid = document.getElementById('paletteGrid');
+  grid.innerHTML = '';
+  VEHICLE_TYPES.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'v-palette-item';
+    div.dataset.type = t.key;
+    div.style.borderColor = t.color + '99';
+    div.innerHTML = '<span class="p-emoji">' + t.emoji + '</span><span class="p-name">' + t.label + '</span>';
+    div.addEventListener('pointerdown', onPaletteDown);
+    grid.appendChild(div);
+  });
+}
+const ghost = document.getElementById('dragGhost');
+function moveGhost(x, y) { ghost.style.left = (x - 30) + 'px'; ghost.style.top = (y - 34) + 'px'; }
+function onPaletteDown(e) {
+  e.preventDefault();
+  const key = e.currentTarget.dataset.type;
+  dragType = VEHICLE_TYPES.find(t => t.key === key);
+  if (!dragType) return;
+  ghost.querySelector('.g-emoji').textContent = dragType.emoji;
+  ghost.querySelector('.g-label').textContent = dragType.label;
+  ghost.style.display = 'flex';
+  moveGhost(e.clientX, e.clientY);
+  document.addEventListener('pointermove', onDragMove);
+  document.addEventListener('pointerup', onDragUp);
+  document.addEventListener('pointercancel', onDragUp);
+}
+function onDragMove(e) {
+  moveGhost(e.clientX, e.clientY);
+  ghost.style.display = 'none';
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  ghost.style.display = 'flex';
+  const zone = el ? el.closest('.drop-zone') : null;
+  if (currentHL && currentHL !== zone) { currentHL.classList.remove('drag-over'); currentHL = null; }
+  if (zone && zone !== currentHL) { zone.classList.add('drag-over'); currentHL = zone; }
+}
+function onDragUp(e) {
+  document.removeEventListener('pointermove', onDragMove);
+  document.removeEventListener('pointerup', onDragUp);
+  document.removeEventListener('pointercancel', onDragUp);
+  if (currentHL) currentHL.classList.remove('drag-over');
+  ghost.style.display = 'none';
+  if (!dragType) { currentHL = null; return; }
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const zone = el ? el.closest('.drop-zone') : null;
+  if (zone) {
+    const uid = 'u' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const entry = { uid, type: dragType.key, status: 0 };
+    if (zone.dataset.zoneType === 'resource') {
+      state.resource.push(entry);
+    } else if (zone.dataset.zoneType === 'floor') {
+      state.floors[zone.dataset.floorId][state.currentFace].push(entry);
+    }
+    saveState();
+    renderAll();
+  }
+  dragType = null; currentHL = null;
+}
+
+/* ── 출동정보 요약 입력 ── */
+function setupSummaryInputs() {
+  SUMMARY_KEYS.forEach(k => {
+    const el = document.getElementById('cnt-' + k);
+    if (!el) return;
+    el.value = state.summary[k] || 0;
+    el.addEventListener('input', () => {
+      state.summary[k] = parseInt(el.value) || 0;
+      saveState();
+      updateSummaryTotal();
+    });
+  });
+}
+
+/* ── 전체 초기화 ── */
+function fullReset() {
+  if (!confirm('작전도를 전체 초기화할까요?\n(건물, 배치된 차량, 출동정보가 모두 삭제됩니다)')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = defaultState();
+  document.getElementById('groundFloors').value = state.ground;
+  document.getElementById('basementFloors').value = state.basement;
+  SUMMARY_KEYS.forEach(k => { const el = document.getElementById('cnt-' + k); if (el) el.value = 0; });
+  setFace('A');
+  renderAll();
+}
+
+/* ── 초기화 ── */
+setupPalette();
+setupSummaryInputs();
+document.querySelectorAll('.face-btn').forEach(b => b.addEventListener('click', () => setFace(b.dataset.face)));
+document.getElementById('buildBtn').addEventListener('click', () => {
+  const g = parseInt(document.getElementById('groundFloors').value) || 5;
+  const b = parseInt(document.getElementById('basementFloors').value) || 0;
+  generateBuilding(g, b);
+});
+document.getElementById('fullResetBtn').addEventListener('click', fullReset);
+
+document.getElementById('groundFloors').value = state.ground;
+document.getElementById('basementFloors').value = state.basement;
+
+// 건물정보 자동입력용: ?gf=지상층수&bf=지하층수 파라미터가 있으면 새 건물로 자동 생성
+const params = new URLSearchParams(window.location.search);
+const gfParam = params.get('gf');
+const bfParam = params.get('bf');
+if (gfParam !== null || bfParam !== null) {
+  const g = parseInt(gfParam) || state.ground || 5;
+  const b = parseInt(bfParam) || state.basement || 0;
+  setFace(state.currentFace);
+  generateBuilding(g, b);
+} else {
+  setFace(state.currentFace);
+  renderAll();
+}
+</script>
+</body>
+</html>
