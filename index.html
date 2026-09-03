@@ -10,8 +10,11 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 
 #page-map { position: fixed; inset: 0; display: flex; flex-direction: column; }
 
-/* ══ 작전도 ══ */
+/* ══ 헤더 ══ */
 #mapHeader { padding: 10px 12px 8px; background: rgba(13,20,40,0.97); border-bottom: 1px solid #1e293b; flex-shrink: 0; }
+#headerTop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+#headerTitle { color: #94a3b8; font-size: 12px; font-weight: 700; }
+#clock { font-family: monospace; color: #38bdf8; font-size: 15px; font-weight: 700; letter-spacing: 0.03em; }
 #floorControls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
 #floorControls label { color: #e2e8f0; font-size: 13px; display: flex; align-items: center; gap: 4px; }
 .num-input { width: 50px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 14px; padding: 5px 4px; text-align: center; outline: none; }
@@ -20,34 +23,57 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 #customUnitInput { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 12px; padding: 6px 8px; outline: none; }
 #customUnitInput::placeholder { color: #475569; }
 #addUnitBtn { background: #065f46; color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
+
 #mapMain { flex: 1; display: flex; overflow: hidden; }
-#buildingArea { width: 48%; overflow-y: auto; padding: 8px 6px 8px 8px; border-right: 1px solid #1e293b; }
+
+/* ══ 왼쪽 컬럼: 건물 + 기록 ══ */
+#leftColumn { width: 48%; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid #1e293b; }
+#buildingArea { flex: 1 1 auto; overflow-y: auto; padding: 8px 6px 8px 8px; min-height: 60px; }
 #noBuildingMsg { color: #475569; font-size: 12px; text-align: center; margin-top: 30px; line-height: 1.8; }
 
 .floor-zone { display: flex; align-items: stretch; min-height: 46px; margin-bottom: 2px; border-radius: 6px; border: 1.5px solid #1e293b; overflow: hidden; transition: border-color 0.12s; }
 .floor-zone.ground { background: #0f1f35; }
 .floor-zone.basement { background: #0a1520; }
 .floor-zone.roof { background: #1a0a2e; border-color: #7c3aed; min-height: 34px; }
-.floor-label { width: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: monospace; background: #1e293b; color: #94a3b8; }
+.floor-label { width: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: monospace; background: #1e293b; color: #94a3b8; }
 .floor-zone.basement .floor-label { background: #162032; color: #64748b; }
 .floor-zone.roof .floor-label { background: #2d1b69; color: #c4b5fd; }
 
-.commander-slot { width: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #1a1030; border-right: 1px solid #1e293b; border-left: 1px solid #1e293b; padding: 2px; transition: background 0.12s, border-color 0.12s; }
+.commander-slot { width: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #1a1030; border-right: 1px solid #1e293b; border-left: 1px solid #1e293b; padding: 2px; transition: background 0.12s, border-color 0.12s; position: relative; }
 .commander-slot.drag-over { background: rgba(250,204,21,0.15); border-color: #facc15; }
 .commander-slot .placed-chip { padding: 2px 4px; font-size: 8px; }
-.commander-slot::before { content: '⭐'; font-size: 9px; opacity: 0.35; }
-.commander-slot:has(.placed-chip)::before { display: none; }
+.commander-slot .cs-hint { font-size: 9px; opacity: 0.35; pointer-events: none; }
 
 .floor-content { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 4px 5px; min-height: 46px; transition: background 0.12s; }
 .floor-zone.roof .floor-content { min-height: 34px; }
 .floor-content.drag-over, .staging-content.drag-over { background: rgba(56,189,248,0.12); }
 
+.injury-input { width: 52px; flex-shrink: 0; background: #0f172a; border: none; border-left: 1px solid #1e293b; color: #facc15; font-size: 11px; padding: 2px 4px; text-align: center; outline: none; font-family: inherit; }
+.injury-input::placeholder { color: #475569; font-size: 9px; }
+
 .placed-chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; color: #0b1220; cursor: grab; user-select: none; -webkit-tap-highlight-color: transparent; white-space: nowrap; touch-action: none; }
 .placed-chip .remove-x { font-size: 11px; opacity: 0.7; }
 
+/* ══ 기록(타임라인) ══ */
+#timelineSection { flex: 0 0 auto; border-top: 1px solid #1e293b; padding: 8px; display: flex; flex-direction: column; max-height: 40%; }
+#timelineInputRow { display: flex; gap: 5px; margin-bottom: 6px; }
+#timelineTime { width: 58px; flex-shrink: 0; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 11px; padding: 5px 4px; text-align: center; outline: none; font-family: monospace; }
+#timelineText { flex: 1; min-width: 0; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 12px; padding: 5px 8px; outline: none; }
+#timelineAddBtn { background: #1d4ed8; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; padding: 5px 10px; cursor: pointer; flex-shrink: 0; }
+#timelineList { flex: 1; overflow-y: auto; border-top: 1px solid #1a2740; }
+.timeline-row { display: flex; align-items: center; gap: 6px; padding: 6px 4px; border-bottom: 1px solid #1a2740; font-size: 12px; }
+.timeline-row .tl-time { font-family: monospace; color: #38bdf8; font-weight: 700; flex-shrink: 0; }
+.timeline-row .tl-sep { color: #475569; flex-shrink: 0; }
+.timeline-row .tl-text { flex: 1; color: #e2e8f0; word-break: break-all; }
+.timeline-row .tl-del { background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; flex-shrink: 0; padding: 2px 4px; }
+#timelineEmpty { color: #475569; font-size: 11px; padding: 8px 4px; text-align: center; }
+
+/* ══ 오른쪽 컬럼: 출동대 패널 ══ */
 #unitPanel { width: 52%; overflow-y: auto; padding: 8px; }
 .unit-section-label { font-size: 10px; color: #64748b; font-weight: 700; letter-spacing: 0.06em; padding: 2px 2px 5px; display: block; }
-#unitGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 8px; }
+.unit-group-label { font-size: 10px; color: #94a3b8; font-weight: 700; margin: 8px 0 4px; padding-left: 2px; }
+.unit-group-label:first-child { margin-top: 0; }
+.unit-group-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 4px; }
 .unit-icon { background: #111827; border: 1.5px solid #1e293b; border-radius: 9px; padding: 7px 4px; text-align: center; font-size: 10px; font-weight: 700; color: #e2e8f0; cursor: grab; user-select: none; touch-action: none; -webkit-tap-highlight-color: transparent; transition: opacity 0.2s; line-height: 1.3; }
 .unit-icon .u-emoji { font-size: 18px; display: block; margin-bottom: 2px; }
 .unit-icon.placed { opacity: 0.3; cursor: default; }
@@ -60,12 +86,18 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 .staging-zone { border-radius: 8px; border: 1.5px dashed #334155; background: #0d1626; min-height: 56px; padding: 6px; transition: border-color 0.12s, background 0.12s; }
 .staging-content { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; min-height: 44px; }
 .staging-empty-msg { color: #475569; font-size: 11px; padding: 4px; }
+#specialRow { display: flex; gap: 6px; margin-top: 8px; }
+#specialRow > div { flex: 1; min-width: 0; }
 </style>
 </head>
 <body>
 
 <div id="page-map">
   <div id="mapHeader">
+    <div id="headerTop">
+      <span id="headerTitle">🗺️ 119 작전도</span>
+      <span id="clock">00:00:00</span>
+    </div>
     <div id="floorControls">
       <label>지상 <input class="num-input" id="groundFloors" type="number" min="1" max="150" value="5"> 층</label>
       <label>지하 <input class="num-input" id="basementFloors" type="number" min="0" max="20" value="1"> 층</label>
@@ -77,15 +109,40 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
     </div>
   </div>
   <div id="mapMain">
-    <div id="buildingArea"><div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르세요</div></div>
+    <div id="leftColumn">
+      <div id="buildingArea"><div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르세요</div></div>
+      <div id="timelineSection">
+        <span class="unit-section-label">기록 — 시간 | 내용 (예: 10:00 | 완진)</span>
+        <div id="timelineInputRow">
+          <input id="timelineTime" type="text" placeholder="10:00">
+          <input id="timelineText" type="text" placeholder="내용 입력">
+          <button id="timelineAddBtn">＋</button>
+        </div>
+        <div id="timelineList"></div>
+      </div>
+    </div>
     <div id="unitPanel">
-      <span class="unit-section-label">출동대 — 건물 층/단위지휘관 칸으로 끌어다 배치</span>
+      <span class="unit-section-label">출동대 — 건물 층/단위지휘관 칸으로 끌어다 배치 (더블클릭: 이름 수정)</span>
       <div id="unitGrid"></div>
       <button class="reset-btn" id="resetBtn">🔄 배치 초기화</button>
       <div id="stagingSection">
         <span class="unit-section-label">자원대기소 — 대기 중인 출동대</span>
         <div class="staging-zone">
           <div class="staging-content" id="staging-content" data-drop-type="staging"></div>
+        </div>
+        <div id="specialRow">
+          <div>
+            <span class="unit-section-label">임시의료소</span>
+            <div class="staging-zone">
+              <div class="staging-content" id="medical-content" data-drop-type="medical"></div>
+            </div>
+          </div>
+          <div>
+            <span class="unit-section-label">RIT</span>
+            <div class="staging-zone">
+              <div class="staging-content" id="rit-content" data-drop-type="rit"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -95,34 +152,117 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 <div id="dragGhost"><span class="u-emoji">🚒</span><span class="u-name"></span></div>
 
 <script>
-/* ── 작전도 ── */
+const STORAGE_KEY = 'fireOpsBoard_v2';
+
+/* ── 출동대 그룹/이모지 ── */
+function groupOf(name) {
+  if (name.indexOf('구조') > -1) return 'rescue';
+  if (name.indexOf('구급') > -1) return 'ambulance';
+  return 'engine';
+}
+function unitEmoji(u) {
+  const g = groupOf(u.name);
+  return g === 'rescue' ? '🦺' : g === 'ambulance' ? '🚑' : '🚒';
+}
+
 const UNIT_COLORS = ["#38bdf8","#facc15","#4ade80","#fb923c","#c084fc","#f472b6","#22d3ee","#a3e635","#f87171","#818cf8","#34d399","#fbbf24","#60a5fa","#e879f9","#2dd4bf","#f97316"];
-let units = [{name:"양천대",emoji:"🚒"},{name:"신정대",emoji:"🚒"},{name:"신트리대",emoji:"🚒"},{name:"신월대",emoji:"🚒"},{name:"목동대",emoji:"🚒"},{name:"양천구조대",emoji:"🦺"},{name:"강서구조대",emoji:"🦺"},{name:"구로구조대",emoji:"🦺"},{name:"영등포구조대",emoji:"🦺"},{name:"등촌대",emoji:"🚒"},{name:"화곡대",emoji:"🚒"},{name:"당산대",emoji:"🚒"},{name:"신도림대",emoji:"🚒"},{name:"고척대",emoji:"🚒"}].map((u,i)=>({...u,color:UNIT_COLORS[i%UNIT_COLORS.length],custom:false}));
 
-// placedMap[unitName] = { type: 'floor'|'commander'|'staging', floorId?: string }
+const DEFAULT_UNIT_NAMES = [
+  "양천대","신정대","신트리대","신월대","목동대",
+  "양천구조대","강서구조대","구로구조대","영등포구조대",
+  "등촌대","화곡대","당산대","신도림대","고척대",
+  "양천구급1","양천구급2","신정구급1","신트리구급"
+];
+let units = DEFAULT_UNIT_NAMES.map((name, i) => ({ name, color: UNIT_COLORS[i % UNIT_COLORS.length], custom: false }));
+
+// placedMap[unitName] = { type: 'floor'|'commander'|'staging'|'medical'|'rit', floorId?: string }
 let placedMap = {};
+let floorTexts = {};      // { floorId: "부상자 텍스트" }
+let timeline = [];        // [{ time, text }]
+let built = false, ground = 5, basement = 1;
 
+/* ══ 시계 ══ */
+function updateClock() {
+  const now = new Date();
+  const p = n => String(n).padStart(2, '0');
+  document.getElementById('clock').textContent = p(now.getHours()) + ':' + p(now.getMinutes()) + ':' + p(now.getSeconds());
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+/* ══ 저장/불러오기 ══ */
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ units, placedMap, floorTexts, timeline, built, ground, basement }));
+  } catch (e) {}
+}
+function loadState() {
+  let s = null;
+  try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) s = JSON.parse(raw); } catch (e) {}
+  if (!s) return;
+  if (Array.isArray(s.units) && s.units.length) units = s.units;
+  if (s.placedMap) placedMap = s.placedMap;
+  if (s.floorTexts) floorTexts = s.floorTexts;
+  if (Array.isArray(s.timeline)) timeline = s.timeline;
+  if (s.built) {
+    built = true;
+    ground = s.ground || 5;
+    basement = s.basement || 0;
+    document.getElementById('groundFloors').value = ground;
+    document.getElementById('basementFloors').value = basement;
+    buildFloors(ground, basement);
+    applyFloorTexts();
+  }
+}
+
+/* ══ 출동대 그리드(그룹별) ══ */
 function renderUnitGrid() {
-  const grid = document.getElementById('unitGrid'); grid.innerHTML = '';
-  units.forEach(u => {
-    const isPlaced = !!placedMap[u.name];
-    const div = document.createElement('div');
-    div.className = 'unit-icon' + (isPlaced?' placed':'') + (u.custom?' custom':'');
-    div.dataset.unitName = u.name;
-    div.style.borderColor = isPlaced ? '#1e293b' : u.color + '66';
-    div.innerHTML = '<span class="u-emoji">' + u.emoji + '</span><span class="u-name">' + escHtml(u.name) + '</span>';
-    if (!isPlaced) div.addEventListener('pointerdown', e => onDragStart(e, u.name));
-    grid.appendChild(div);
+  const container = document.getElementById('unitGrid');
+  container.innerHTML = '';
+  const groups = [
+    { key: 'engine', label: '🚒 진압대' },
+    { key: 'rescue', label: '🦺 구조대' },
+    { key: 'ambulance', label: '🚑 구급대' }
+  ];
+  groups.forEach(g => {
+    const list = units.filter(u => groupOf(u.name) === g.key);
+    if (!list.length) return;
+    const h = document.createElement('div');
+    h.className = 'unit-group-label';
+    h.textContent = g.label;
+    container.appendChild(h);
+    const grid = document.createElement('div');
+    grid.className = 'unit-group-grid';
+    list.forEach(u => {
+      const isPlaced = !!placedMap[u.name];
+      const div = document.createElement('div');
+      div.className = 'unit-icon' + (isPlaced ? ' placed' : '') + (u.custom ? ' custom' : '');
+      div.dataset.unitName = u.name;
+      div.style.borderColor = isPlaced ? '#1e293b' : u.color + '66';
+      div.innerHTML = '<span class="u-emoji">' + unitEmoji(u) + '</span><span class="u-name">' + escHtml(u.name) + '</span>';
+      if (!isPlaced) div.addEventListener('pointerdown', e => onDragStart(e, u.name));
+      div.addEventListener('dblclick', e => onUnitDblClick(e, u.name));
+      grid.appendChild(div);
+    });
+    container.appendChild(grid);
   });
 }
 
-document.getElementById('buildBtn').addEventListener('click', () => { generateBuilding(Math.min(parseInt(document.getElementById('groundFloors').value)||5,150), Math.min(parseInt(document.getElementById('basementFloors').value)||0,20)); });
-
-function generateBuilding(g, b) {
-  placedMap = {};
+/* ══ 건물 생성 ══ */
+document.getElementById('buildBtn').addEventListener('click', () => {
+  const g = Math.min(parseInt(document.getElementById('groundFloors').value) || 5, 150);
+  const b = Math.min(parseInt(document.getElementById('basementFloors').value) || 0, 20);
+  ground = g; basement = b; built = true;
+  placedMap = {}; floorTexts = {};
+  buildFloors(g, b);
   renderUnitGrid();
-  renderStaging();
-  const area = document.getElementById('buildingArea'); area.innerHTML = '';
+  renderPlacements();
+  saveState();
+});
+
+function buildFloors(g, b) {
+  const area = document.getElementById('buildingArea');
+  area.innerHTML = '';
   area.appendChild(makeFloor('RF', '옥상', 'roof'));
   for (let f = g; f >= 1; f--) area.appendChild(makeFloor(f + 'F', f + '층', 'ground'));
   for (let b2 = 1; b2 <= b; b2++) area.appendChild(makeFloor('B' + b2, '지하' + b2, 'basement'));
@@ -133,16 +273,26 @@ function makeFloor(id, label, type) {
   d.className = 'floor-zone ' + type;
   d.innerHTML =
     '<div class="floor-label">' + label + '</div>' +
-    '<div class="commander-slot" data-drop-type="commander" data-floor-id="' + id + '"></div>' +
-    '<div class="floor-content" id="fc-' + id + '" data-drop-type="floor" data-floor-id="' + id + '"></div>';
+    '<div class="commander-slot" data-drop-type="commander" data-floor-id="' + id + '"><span class="cs-hint">⭐</span></div>' +
+    '<div class="floor-content" id="fc-' + id + '" data-drop-type="floor" data-floor-id="' + id + '"></div>' +
+    '<input class="injury-input" id="inj-' + id + '" data-floor-id="' + id + '" placeholder="부상자">';
+  const inj = d.querySelector('.injury-input');
+  inj.addEventListener('input', () => { floorTexts[id] = inj.value; saveState(); });
   return d;
+}
+
+function applyFloorTexts() {
+  Object.keys(floorTexts).forEach(fid => {
+    const el = document.getElementById('inj-' + fid);
+    if (el) el.value = floorTexts[fid];
+  });
 }
 
 document.getElementById('resetBtn').addEventListener('click', () => {
   placedMap = {};
-  document.querySelectorAll('.floor-content, .commander-slot').forEach(fc => fc.innerHTML = '');
   renderUnitGrid();
-  renderStaging();
+  renderPlacements();
+  saveState();
 });
 
 document.getElementById('addUnitBtn').addEventListener('click', addCustomUnit);
@@ -150,39 +300,78 @@ document.getElementById('customUnitInput').addEventListener('keydown', e => { if
 function addCustomUnit() {
   const input = document.getElementById('customUnitInput'), name = input.value.trim();
   if (!name || units.find(u => u.name === name)) { input.value = ''; return; }
-  units.push({ name, emoji: '🚒', color: UNIT_COLORS[units.length % UNIT_COLORS.length], custom: true });
+  units.push({ name, color: UNIT_COLORS[units.length % UNIT_COLORS.length], custom: true });
   input.value = '';
   renderUnitGrid();
+  saveState();
 }
 
-/* ── 자원대기소 렌더 ── */
-function renderStaging() {
-  const sc = document.getElementById('staging-content');
-  const names = Object.keys(placedMap).filter(n => placedMap[n].type === 'staging');
-  if (!names.length) { sc.innerHTML = '<span class="staging-empty-msg">여기로 출동대를 끌어다 대기시킬 수 있습니다</span>'; return; }
-  sc.innerHTML = '';
-  names.forEach(n => sc.appendChild(makeChip(n)));
+/* ══ 배치 렌더링 (placedMap이 유일한 소스) ══ */
+function renderPlacements() {
+  document.querySelectorAll('.floor-content, .commander-slot').forEach(el => {
+    if (el.classList.contains('commander-slot')) {
+      el.innerHTML = '<span class="cs-hint">⭐</span>';
+    } else {
+      el.innerHTML = '';
+    }
+  });
+  ['staging-content', 'medical-content', 'rit-content'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
+
+  Object.keys(placedMap).forEach(unitName => {
+    const loc = placedMap[unitName];
+    let target = null;
+    if (loc.type === 'floor') target = document.getElementById('fc-' + loc.floorId);
+    else if (loc.type === 'commander') target = document.querySelector('.commander-slot[data-floor-id="' + cssEsc(loc.floorId) + '"]');
+    else if (loc.type === 'staging') target = document.getElementById('staging-content');
+    else if (loc.type === 'medical') target = document.getElementById('medical-content');
+    else if (loc.type === 'rit') target = document.getElementById('rit-content');
+    if (!target) return;
+    if (loc.type === 'commander') target.innerHTML = '';
+    target.appendChild(makeChip(unitName));
+  });
+
+  emptyMsgIfNeeded('staging-content', '여기로 출동대를 끌어다 대기시킬 수 있습니다');
+  emptyMsgIfNeeded('medical-content', '부상자 처치 중인 출동대를 배치하세요');
+  emptyMsgIfNeeded('rit-content', 'RIT 대기 출동대를 배치하세요');
+}
+function emptyMsgIfNeeded(id, msg) {
+  const el = document.getElementById(id);
+  if (el && el.children.length === 0) el.innerHTML = '<span class="staging-empty-msg">' + msg + '</span>';
 }
 
-/* ── 칩 생성 (드래그 가능) ── */
 function makeChip(unitName) {
   const u = units.find(x => x.name === unitName);
   const chip = document.createElement('div');
   chip.className = 'placed-chip';
   chip.dataset.unitName = unitName;
   chip.style.background = u ? u.color : '#94a3b8';
-  chip.innerHTML = (u ? u.emoji : '🚒') + ' ' + escHtml(unitName) + ' <span class="remove-x">✕</span>';
+  chip.innerHTML = (u ? unitEmoji(u) : '🚒') + ' ' + escHtml(unitName) + ' <span class="remove-x">✕</span>';
   chip.querySelector('.remove-x').addEventListener('click', e => {
     e.stopPropagation();
-    removeFromCurrentLocation(unitName);
     delete placedMap[unitName];
-    renderUnitGrid(); renderStaging();
+    renderUnitGrid(); renderPlacements(); saveState();
   });
   chip.addEventListener('pointerdown', e => { if (e.target.classList.contains('remove-x')) return; onDragStart(e, unitName); });
+  chip.addEventListener('dblclick', e => onUnitDblClick(e, unitName));
   return chip;
 }
 
-/* ── 공용 드래그 로직 ── */
+/* ══ 더블클릭 이름 수정 ══ */
+function onUnitDblClick(e, unitName) {
+  e.stopPropagation();
+  const newName = prompt('출동대 이름 수정', unitName);
+  if (newName === null) return;
+  const trimmed = newName.trim();
+  if (!trimmed || trimmed === unitName) return;
+  if (units.find(u => u.name === trimmed)) { alert('이미 존재하는 이름입니다.'); return; }
+  const u = units.find(x => x.name === unitName);
+  if (!u) return;
+  u.name = trimmed;
+  if (placedMap[unitName]) { placedMap[trimmed] = placedMap[unitName]; delete placedMap[unitName]; }
+  renderUnitGrid(); renderPlacements(); saveState();
+}
+
+/* ══ 공용 드래그 로직 ══ */
 const ghost2 = document.getElementById('dragGhost');
 let dragging = null, currentHL = null;
 
@@ -192,7 +381,7 @@ function onDragStart(e, unitName) {
   const u = units.find(x => x.name === unitName);
   if (!u) return;
   dragging = u;
-  ghost2.querySelector('.u-emoji').textContent = u.emoji;
+  ghost2.querySelector('.u-emoji').textContent = unitEmoji(u);
   ghost2.querySelector('.u-name').textContent = u.name;
   ghost2.style.display = 'block';
   moveGhost2(e.clientX, e.clientY);
@@ -218,7 +407,7 @@ function onPtrUp(e) {
   document.removeEventListener('pointercancel', onPtrUp);
   if (currentHL) { currentHL.classList.remove('drag-over'); currentHL = null; }
   ghost2.style.display = 'none';
-  if (!dragging) return;
+  if (!dragging) { return; }
   const el = document.elementFromPoint(e.clientX, e.clientY);
   const target = el ? el.closest('[data-drop-type]') : null;
   if (target) {
@@ -226,60 +415,74 @@ function onPtrUp(e) {
     if (type === 'floor') placeUnit(dragging.name, { type: 'floor', floorId: target.dataset.floorId });
     else if (type === 'commander') placeUnit(dragging.name, { type: 'commander', floorId: target.dataset.floorId });
     else if (type === 'staging') placeUnit(dragging.name, { type: 'staging' });
+    else if (type === 'medical') placeUnit(dragging.name, { type: 'medical' });
+    else if (type === 'rit') placeUnit(dragging.name, { type: 'rit' });
   }
   dragging = null;
 }
 
 function moveGhost2(x, y) { ghost2.style.left = (x - 38) + 'px'; ghost2.style.top = (y - 44) + 'px'; }
 
-/* ── 배치 처리 ── */
 function placeUnit(unitName, location) {
-  // 이동 전, 현재 위치에서 제거
-  removeFromCurrentLocation(unitName);
-
   if (location.type === 'commander') {
-    // 단위지휘관 칸은 1개만 수용 — 기존에 다른 대가 있으면 대기 상태(자원대기소 X, 그냥 배치 해제)로 되돌림
-    const slot = document.querySelector('.commander-slot[data-floor-id="' + location.floorId + '"]');
-    if (slot && slot.firstChild) {
-      const occupiedName = slot.firstChild.dataset.unitName;
-      if (occupiedName && occupiedName !== unitName) {
-        delete placedMap[occupiedName];
-        slot.innerHTML = '';
-      }
-    }
-    placedMap[unitName] = { type: 'commander', floorId: location.floorId };
-    if (slot) { slot.innerHTML = ''; slot.appendChild(makeChip(unitName)); }
-  } else if (location.type === 'floor') {
-    placedMap[unitName] = { type: 'floor', floorId: location.floorId };
-    const fc = document.getElementById('fc-' + location.floorId);
-    if (fc) fc.appendChild(makeChip(unitName));
-  } else if (location.type === 'staging') {
-    placedMap[unitName] = { type: 'staging' };
-    renderStaging();
+    Object.keys(placedMap).forEach(k => {
+      const v = placedMap[k];
+      if (k !== unitName && v.type === 'commander' && v.floorId === location.floorId) delete placedMap[k];
+    });
   }
-
+  placedMap[unitName] = location;
   renderUnitGrid();
-}
-
-function removeFromCurrentLocation(unitName) {
-  const cur = placedMap[unitName];
-  if (!cur) return;
-  if (cur.type === 'floor') {
-    const fc = document.getElementById('fc-' + cur.floorId);
-    if (fc) { const c = fc.querySelector('[data-unit-name="' + cssEsc(unitName) + '"]'); if (c) c.remove(); }
-  } else if (cur.type === 'commander') {
-    const slot = document.querySelector('.commander-slot[data-floor-id="' + cssEsc(cur.floorId) + '"]');
-    if (slot) slot.innerHTML = '';
-  } else if (cur.type === 'staging') {
-    // renderStaging()에서 다시 그리므로 별도 DOM 제거 불필요
-  }
+  renderPlacements();
+  saveState();
 }
 
 function cssEsc(s) { return String(s).replace(/(["\\])/g, '\\$1'); }
 function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+/* ══ 기록(타임라인) ══ */
+function currentTimeHHMM() {
+  const now = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return p(now.getHours()) + ':' + p(now.getMinutes());
+}
+document.getElementById('timelineTime').value = currentTimeHHMM();
+
+document.getElementById('timelineAddBtn').addEventListener('click', addTimelineEntry);
+document.getElementById('timelineText').addEventListener('keydown', e => { if (e.key === 'Enter') addTimelineEntry(); });
+function addTimelineEntry() {
+  const timeEl = document.getElementById('timelineTime'), textEl = document.getElementById('timelineText');
+  const time = timeEl.value.trim() || currentTimeHHMM();
+  const text = textEl.value.trim();
+  if (!text) return;
+  timeline.push({ time, text });
+  textEl.value = '';
+  timeEl.value = currentTimeHHMM();
+  renderTimeline();
+  saveState();
+}
+function renderTimeline() {
+  const list = document.getElementById('timelineList');
+  if (!timeline.length) { list.innerHTML = '<div id="timelineEmpty">기록이 없습니다.</div>'; return; }
+  list.innerHTML = '';
+  timeline.forEach((entry, idx) => {
+    const row = document.createElement('div');
+    row.className = 'timeline-row';
+    row.innerHTML =
+      '<span class="tl-time">' + escHtml(entry.time) + '</span>' +
+      '<span class="tl-sep">|</span>' +
+      '<span class="tl-text">' + escHtml(entry.text) + '</span>' +
+      '<button class="tl-del">✕</button>';
+    row.querySelector('.tl-del').addEventListener('click', () => { timeline.splice(idx, 1); renderTimeline(); saveState(); });
+    list.appendChild(row);
+  });
+  list.scrollTop = list.scrollHeight;
+}
+
+/* ══ 초기화 ══ */
+loadState();
 renderUnitGrid();
-renderStaging();
+renderPlacements();
+renderTimeline();
 </script>
 </body>
 </html>
