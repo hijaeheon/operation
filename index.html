@@ -3,403 +3,283 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>119 소방 작전도</title>
+<title>119 작전도</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pretendard", sans-serif; background: #0b1220; color: #e2e8f0; overflow: hidden; }
-#app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pretendard", sans-serif; background: #0b1220; overflow: hidden; }
 
-/* ── 상단 헤더 ── */
-#topBar { flex-shrink: 0; padding: 8px 12px 6px; background: rgba(13,20,40,0.97); border-bottom: 1px solid #1e293b; }
-#topBar h2 { font-size: 15px; font-weight: 700; color: #f8fafc; margin-bottom: 5px; }
-#vehicleSummaryBar { font-size: 11px; color: #cbd5e1; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 6px 8px; line-height: 1.9; display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
-.vs-label { color: #64748b; font-weight: 700; margin-right: 4px; }
-#vTotalDisplay { color: #facc15; font-size: 13px; font-family: monospace; }
-.cnt-input { width: 30px; background: #111827; border: 1px solid #334155; border-radius: 5px; color: #e2e8f0; font-size: 11px; padding: 2px 3px; text-align: center; outline: none; font-family: monospace; }
-.cnt-input.wide { width: 40px; }
-.cnt-input:focus { border-color: #38bdf8; }
+#page-map { position: fixed; inset: 0; display: flex; flex-direction: column; }
 
-/* ── 컨트롤 바 (건물생성 + 방향선택) ── */
-#controlsBar { flex-shrink: 0; padding: 8px 12px; background: rgba(13,20,40,0.9); border-bottom: 1px solid #1e293b; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-#floorControls { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-#floorControls label { font-size: 12px; color: #e2e8f0; display: flex; align-items: center; gap: 4px; }
-.num-input { width: 46px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 13px; padding: 5px 4px; text-align: center; outline: none; }
-#buildBtn { background: #1d4ed8; color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; padding: 7px 12px; cursor: pointer; }
-#fullResetBtn { background: #7f1d1d; color: #fca5a5; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; padding: 7px 12px; cursor: pointer; }
-
-#faceSelector { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.compass { display: grid; grid-template-columns: 40px 54px 40px; grid-template-rows: 30px 54px 30px; grid-template-areas: ". top ." "left center right" ". bottom ."; gap: 3px; }
-.face-btn { border: 1.5px solid #334155; background: #111827; color: #94a3b8; border-radius: 7px; font-size: 10px; font-weight: 700; line-height: 1.2; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.face-btn span { display: block; font-size: 8px; font-weight: 500; color: #64748b; }
-.face-btn.active { border-color: #38bdf8; color: #38bdf8; background: #0f2942; box-shadow: 0 0 8px rgba(56,189,248,.4); }
-.face-btn.active span { color: #7dd3fc; }
-.face-top { grid-area: top; } .face-left { grid-area: left; } .face-right { grid-area: right; } .face-bottom { grid-area: bottom; }
-.compass-center { grid-area: center; display: flex; align-items: center; justify-content: center; font-size: 22px; background: #0d1929; border: 1px solid #1e293b; border-radius: 10px; transform: perspective(200px) rotateX(12deg); box-shadow: 0 4px 10px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.03); }
-.face-hint { font-size: 10px; color: #64748b; }
-.face-hint strong { color: #38bdf8; }
-
-/* ── 메인 영역 ── */
-#mainArea { flex: 1; display: flex; overflow: hidden; }
-#buildingArea { flex: 1; overflow-y: auto; padding: 8px; }
-.floor-zone { display: flex; align-items: stretch; min-height: 48px; margin-bottom: 3px; border-radius: 7px; border: 1.5px solid #1e293b; overflow: hidden; }
-.floor-zone.ground { background: #0f1f35; }
-.floor-zone.basement { background: #0a1520; }
-.floor-zone.roof { background: #1a0a2e; border-color: #7c3aed; min-height: 38px; }
-.floor-label { width: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: monospace; background: #1e293b; color: #94a3b8; }
-.floor-zone.basement .floor-label { background: #162032; color: #64748b; }
-.floor-zone.roof .floor-label { background: #2d1b69; color: #c4b5fd; }
-.floor-content { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 5px 7px; min-height: 48px; }
-.floor-zone.roof .floor-content { min-height: 38px; }
-.drop-zone.drag-over { outline: 2px dashed #38bdf8; background: rgba(56,189,248,0.1); }
+/* ══ 작전도 ══ */
+#mapHeader { padding: 10px 12px 8px; background: rgba(13,20,40,0.97); border-bottom: 1px solid #1e293b; flex-shrink: 0; }
+#floorControls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+#floorControls label { color: #e2e8f0; font-size: 13px; display: flex; align-items: center; gap: 4px; }
+.num-input { width: 50px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 14px; padding: 5px 4px; text-align: center; outline: none; }
+#buildBtn { background: #dc2626; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
+#customUnitRow { display: flex; gap: 6px; }
+#customUnitInput { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 12px; padding: 6px 8px; outline: none; }
+#customUnitInput::placeholder { color: #475569; }
+#addUnitBtn { background: #065f46; color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
+#mapMain { flex: 1; display: flex; overflow: hidden; }
+#buildingArea { width: 48%; overflow-y: auto; padding: 8px 6px 8px 8px; border-right: 1px solid #1e293b; }
 #noBuildingMsg { color: #475569; font-size: 12px; text-align: center; margin-top: 30px; line-height: 1.8; }
 
-#sidePanel { width: 190px; flex-shrink: 0; border-left: 1px solid #1e293b; display: flex; flex-direction: column; overflow: hidden; }
-.section-label { font-size: 10px; color: #64748b; font-weight: 700; letter-spacing: 0.04em; padding: 8px 8px 4px; display: block; }
-#paletteGrid { padding: 0 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-.v-palette-item { background: #111827; border: 1.5px solid; border-radius: 9px; padding: 8px 4px; text-align: center; font-size: 10px; font-weight: 700; color: #e2e8f0; cursor: grab; user-select: none; touch-action: none; -webkit-tap-highlight-color: transparent; }
-.p-emoji { font-size: 18px; display: block; margin-bottom: 2px; }
-#resourceSection { margin-top: auto; flex-shrink: 0; padding: 6px 8px 10px; border-top: 1px solid #1e293b; }
-.resource-zone { min-height: 76px; border: 1.5px dashed #334155; border-radius: 10px; padding: 6px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px; background: #0d1929; overflow-y: auto; max-height: 140px; }
+.floor-zone { display: flex; align-items: stretch; min-height: 46px; margin-bottom: 2px; border-radius: 6px; border: 1.5px solid #1e293b; overflow: hidden; transition: border-color 0.12s; }
+.floor-zone.ground { background: #0f1f35; }
+.floor-zone.basement { background: #0a1520; }
+.floor-zone.roof { background: #1a0a2e; border-color: #7c3aed; min-height: 34px; }
+.floor-label { width: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: monospace; background: #1e293b; color: #94a3b8; }
+.floor-zone.basement .floor-label { background: #162032; color: #64748b; }
+.floor-zone.roof .floor-label { background: #2d1b69; color: #c4b5fd; }
 
-/* ── 차량 칩 (배치된 아이콘) ── */
-.v-chip { position: relative; display: inline-flex; flex-direction: column; align-items: center; gap: 1px; min-width: 50px; padding: 4px 6px 5px; border-radius: 8px; border: 2px solid; background: #0f172a; font-size: 9px; font-weight: 700; color: #e2e8f0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.v-chip .v-emoji { font-size: 15px; line-height: 1; }
-.v-chip .v-label { font-size: 9px; white-space: nowrap; }
-.v-chip .v-status { font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: 4px; margin-top: 1px; }
-.v-chip .v-remove { position: absolute; top: -6px; right: -6px; width: 15px; height: 15px; background: #1e293b; color: #f87171; border-radius: 50%; font-size: 9px; display: flex; align-items: center; justify-content: center; }
-.v-chip.status-1 { border-color: #f87171 !important; }
-.v-chip.status-1 .v-status { background: #7f1d1d; color: #fca5a5; }
-.v-chip.status-2 { border-color: #facc15 !important; }
-.v-chip.status-2 .v-status { background: #78350f; color: #fde68a; }
-.v-chip.status-3 { border-color: #4ade80 !important; }
-.v-chip.status-3 .v-status { background: #14532d; color: #86efac; }
+.commander-slot { width: 30px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #1a1030; border-right: 1px solid #1e293b; border-left: 1px solid #1e293b; padding: 2px; transition: background 0.12s, border-color 0.12s; }
+.commander-slot.drag-over { background: rgba(250,204,21,0.15); border-color: #facc15; }
+.commander-slot .placed-chip { padding: 2px 4px; font-size: 8px; }
+.commander-slot::before { content: '⭐'; font-size: 9px; opacity: 0.35; }
+.commander-slot:has(.placed-chip)::before { display: none; }
 
-#dragGhost { position: fixed; pointer-events: none; z-index: 9999; display: none; flex-direction: column; align-items: center; gap: 2px; background: #1e3a5f; border: 2px solid #38bdf8; border-radius: 9px; padding: 6px 8px; font-size: 10px; font-weight: 700; color: #e2e8f0; opacity: 0.92; box-shadow: 0 6px 20px rgba(0,0,0,.5); }
-#dragGhost .g-emoji { font-size: 18px; }
+.floor-content { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 4px 5px; min-height: 46px; transition: background 0.12s; }
+.floor-zone.roof .floor-content { min-height: 34px; }
+.floor-content.drag-over, .staging-content.drag-over { background: rgba(56,189,248,0.12); }
 
-@media (max-width: 640px) {
-  #mainArea { flex-direction: column; }
-  #sidePanel { width: 100%; border-left: none; border-top: 1px solid #1e293b; max-height: 44vh; }
-  #paletteGrid { grid-template-columns: repeat(5, 1fr); }
-  #resourceSection { margin-top: 0; }
-  #controlsBar { flex-direction: column; align-items: stretch; }
-  #faceSelector { align-self: center; }
-}
+.placed-chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; color: #0b1220; cursor: grab; user-select: none; -webkit-tap-highlight-color: transparent; white-space: nowrap; touch-action: none; }
+.placed-chip .remove-x { font-size: 11px; opacity: 0.7; }
+
+#unitPanel { width: 52%; overflow-y: auto; padding: 8px; }
+.unit-section-label { font-size: 10px; color: #64748b; font-weight: 700; letter-spacing: 0.06em; padding: 2px 2px 5px; display: block; }
+#unitGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 8px; }
+.unit-icon { background: #111827; border: 1.5px solid #1e293b; border-radius: 9px; padding: 7px 4px; text-align: center; font-size: 10px; font-weight: 700; color: #e2e8f0; cursor: grab; user-select: none; touch-action: none; -webkit-tap-highlight-color: transparent; transition: opacity 0.2s; line-height: 1.3; }
+.unit-icon .u-emoji { font-size: 18px; display: block; margin-bottom: 2px; }
+.unit-icon.placed { opacity: 0.3; cursor: default; }
+.unit-icon.custom { border-color: #4ade80 !important; }
+#dragGhost { position: fixed; pointer-events: none; z-index: 9999; background: #1e3a5f; border: 2px solid #38bdf8; border-radius: 9px; padding: 7px 4px; text-align: center; font-size: 10px; font-weight: 700; color: #e2e8f0; width: 75px; opacity: 0.92; display: none; box-shadow: 0 6px 20px rgba(0,0,0,.5); line-height: 1.3; }
+#dragGhost .u-emoji { font-size: 18px; display: block; margin-bottom: 2px; }
+.reset-btn { width: 100%; margin-top: 6px; padding: 7px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: #94a3b8; font-size: 12px; cursor: pointer; }
+
+#stagingSection { margin-top: 12px; }
+.staging-zone { border-radius: 8px; border: 1.5px dashed #334155; background: #0d1626; min-height: 56px; padding: 6px; transition: border-color 0.12s, background 0.12s; }
+.staging-content { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; min-height: 44px; }
+.staging-empty-msg { color: #475569; font-size: 11px; padding: 4px; }
 </style>
 </head>
 <body>
 
-<div id="app">
-  <header id="topBar">
-    <h2>🗺️ 119 소방 작전도</h2>
-    <div id="vehicleSummaryBar">
-      <span class="vs-label">출동정보</span>
-      차량: <strong id="vTotalDisplay">0</strong>
-      (펌:<input class="cnt-input" id="cnt-pump" type="number" min="0" value="0">
-      /탱:<input class="cnt-input" id="cnt-tank" type="number" min="0" value="0">
-      /구:<input class="cnt-input" id="cnt-rescue" type="number" min="0" value="0">
-      /급:<input class="cnt-input" id="cnt-ambulance" type="number" min="0" value="0">
-      /기타:<input class="cnt-input" id="cnt-etc" type="number" min="0" value="0">),
-      전체탑승인원(<input class="cnt-input wide" id="cnt-crew" type="number" min="0" value="0">)
-    </div>
-  </header>
-
-  <div id="controlsBar">
+<div id="page-map">
+  <div id="mapHeader">
     <div id="floorControls">
       <label>지상 <input class="num-input" id="groundFloors" type="number" min="1" max="150" value="5"> 층</label>
       <label>지하 <input class="num-input" id="basementFloors" type="number" min="0" max="20" value="1"> 층</label>
       <button id="buildBtn">🏢 건물 생성</button>
-      <button id="fullResetBtn">🔄 전체 초기화</button>
     </div>
-    <div id="faceSelector">
-      <div class="compass">
-        <button class="face-btn face-top" data-face="A">A<span>정면</span></button>
-        <button class="face-btn face-left" data-face="B">B<span>좌측</span></button>
-        <div class="compass-center">🏢</div>
-        <button class="face-btn face-right" data-face="D">D<span>우측</span></button>
-        <button class="face-btn face-bottom" data-face="C">C<span>후면</span></button>
-      </div>
-      <div class="face-hint">현재 보는 면: <strong id="currentFaceLabel">A(정면)</strong></div>
+    <div id="customUnitRow">
+      <input id="customUnitInput" type="text" placeholder="출동대 이름 직접 입력 후 추가">
+      <button id="addUnitBtn">➕ 추가</button>
     </div>
   </div>
-
-  <div id="mainArea">
-    <div id="buildingArea"></div>
-    <div id="sidePanel">
-      <span class="section-label">소방차량 — 층/자원대기소로 끌어다 배치</span>
-      <div id="paletteGrid"></div>
-      <div id="resourceSection">
-        <div class="section-label" style="padding:0 0 4px">🅿️ 자원대기소</div>
-        <div id="resourceContent" class="drop-zone resource-zone" data-zone-type="resource"></div>
+  <div id="mapMain">
+    <div id="buildingArea"><div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르세요</div></div>
+    <div id="unitPanel">
+      <span class="unit-section-label">출동대 — 건물 층/단위지휘관 칸으로 끌어다 배치</span>
+      <div id="unitGrid"></div>
+      <button class="reset-btn" id="resetBtn">🔄 배치 초기화</button>
+      <div id="stagingSection">
+        <span class="unit-section-label">자원대기소 — 대기 중인 출동대</span>
+        <div class="staging-zone">
+          <div class="staging-content" id="staging-content" data-drop-type="staging"></div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<div id="dragGhost"><span class="g-emoji"></span><span class="g-label"></span></div>
+<div id="dragGhost"><span class="u-emoji">🚒</span><span class="u-name"></span></div>
 
 <script>
-const STORAGE_KEY = 'fireOpsBoardV2';
+/* ── 작전도 ── */
+const UNIT_COLORS = ["#38bdf8","#facc15","#4ade80","#fb923c","#c084fc","#f472b6","#22d3ee","#a3e635","#f87171","#818cf8","#34d399","#fbbf24","#60a5fa","#e879f9","#2dd4bf","#f97316"];
+let units = [{name:"양천대",emoji:"🚒"},{name:"신정대",emoji:"🚒"},{name:"신트리대",emoji:"🚒"},{name:"신월대",emoji:"🚒"},{name:"목동대",emoji:"🚒"},{name:"양천구조대",emoji:"🦺"},{name:"강서구조대",emoji:"🦺"},{name:"구로구조대",emoji:"🦺"},{name:"영등포구조대",emoji:"🦺"},{name:"등촌대",emoji:"🚒"},{name:"화곡대",emoji:"🚒"},{name:"당산대",emoji:"🚒"},{name:"신도림대",emoji:"🚒"},{name:"고척대",emoji:"🚒"}].map((u,i)=>({...u,color:UNIT_COLORS[i%UNIT_COLORS.length],custom:false}));
 
-const VEHICLE_TYPES = [
-  { key: 'pump',      label: '펌프차',   emoji: '🚒', color: '#38bdf8' },
-  { key: 'rescue',    label: '구조대차', emoji: '🦺', color: '#f472b6' },
-  { key: 'ladder',    label: '고가',     emoji: '🏗️', color: '#facc15' },
-  { key: 'artic',     label: '굴절',     emoji: '🪜', color: '#a3e635' },
-  { key: 'ambulance', label: '구급',     emoji: '🚑', color: '#4ade80' }
-];
-const STATUS_LABELS = ['', '출동 중', '임무대기중', '활동중'];
-const FACE_NAMES = { A: 'A(정면)', B: 'B(좌측)', C: 'C(후면)', D: 'D(우측)' };
-const SUMMARY_KEYS = ['pump', 'tank', 'rescue', 'ambulance', 'etc', 'crew'];
+// placedMap[unitName] = { type: 'floor'|'commander'|'staging', floorId?: string }
+let placedMap = {};
 
-function floorIdsFor(g, b) {
-  const ids = ['RF'];
-  for (let f = g; f >= 1; f--) ids.push(f + 'F');
-  for (let i = 1; i <= b; i++) ids.push('B' + i);
-  return ids;
-}
-function floorLabel(id) {
-  if (id === 'RF') return '옥상';
-  if (id.startsWith('B')) return '지하' + id.slice(1);
-  return id.replace('F', '층');
-}
-function floorType(id) {
-  if (id === 'RF') return 'roof';
-  if (id.startsWith('B')) return 'basement';
-  return 'ground';
-}
-
-function defaultState() {
-  const ground = 5, basement = 1;
-  const floors = {};
-  floorIdsFor(ground, basement).forEach(id => { floors[id] = { A: [], B: [], C: [], D: [] }; });
-  return {
-    ground, basement, currentFace: 'A', floors, resource: [],
-    summary: { pump: 0, tank: 0, rescue: 0, ambulance: 0, etc: 0, crew: 0 }
-  };
-}
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultState();
-    const parsed = JSON.parse(raw);
-    const d = defaultState();
-    return {
-      ground: parsed.ground || d.ground,
-      basement: (parsed.basement !== undefined) ? parsed.basement : d.basement,
-      currentFace: parsed.currentFace || 'A',
-      floors: parsed.floors || d.floors,
-      resource: parsed.resource || [],
-      summary: Object.assign({}, d.summary, parsed.summary || {})
-    };
-  } catch (e) { return defaultState(); }
-}
-function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
-
-let state = loadState();
-let dragType = null, currentHL = null;
-
-/* ── 건물 생성 ── */
-function generateBuilding(g, b) {
-  g = Math.min(Math.max(1, g || 1), 150);
-  b = Math.min(Math.max(0, b || 0), 20);
-  state.ground = g; state.basement = b;
-  const floors = {};
-  floorIdsFor(g, b).forEach(id => { floors[id] = { A: [], B: [], C: [], D: [] }; });
-  state.floors = floors;
-  document.getElementById('groundFloors').value = g;
-  document.getElementById('basementFloors').value = b;
-  saveState();
-  renderAll();
-}
-
-/* ── 렌더링 ── */
-function makeChip(entry, containerRef) {
-  const type = VEHICLE_TYPES.find(t => t.key === entry.type) || VEHICLE_TYPES[0];
-  const div = document.createElement('div');
-  div.className = 'v-chip status-' + entry.status;
-  div.dataset.uid = entry.uid;
-  div.style.borderColor = type.color;
-  div.innerHTML =
-    '<span class="v-emoji">' + type.emoji + '</span>' +
-    '<span class="v-label">' + type.label + '</span>' +
-    (entry.status > 0 ? '<span class="v-status">' + STATUS_LABELS[entry.status] + '</span>' : '') +
-    '<span class="v-remove">✕</span>';
-  div.querySelector('.v-remove').addEventListener('click', ev => {
-    ev.stopPropagation();
-    removeEntry(entry.uid, containerRef);
-  });
-  div.addEventListener('click', ev => {
-    if (ev.target.classList.contains('v-remove')) return;
-    entry.status = (entry.status + 1) % 4;
-    saveState();
-    renderAll();
-  });
-  return div;
-}
-function removeEntry(uid, containerRef) {
-  if (containerRef === 'resource') {
-    state.resource = state.resource.filter(e => e.uid !== uid);
-  } else {
-    const arr = state.floors[containerRef][state.currentFace];
-    state.floors[containerRef][state.currentFace] = arr.filter(e => e.uid !== uid);
-  }
-  saveState();
-  renderAll();
-}
-
-function renderBuildingArea() {
-  const area = document.getElementById('buildingArea');
-  area.innerHTML = '';
-  const ids = floorIdsFor(state.ground, state.basement);
-  if (!ids.length) { area.innerHTML = '<div id="noBuildingMsg">지상/지하 층수를 입력하고<br>"건물 생성"을 눌러주세요.</div>'; return; }
-  ids.forEach(id => {
-    const row = document.createElement('div');
-    row.className = 'floor-zone ' + floorType(id);
-    row.innerHTML = '<div class="floor-label">' + floorLabel(id) + '</div>' +
-      '<div class="floor-content drop-zone" data-zone-type="floor" data-floor-id="' + id + '" id="fc-' + id + '"></div>';
-    area.appendChild(row);
-    const content = row.querySelector('.floor-content');
-    const list = (state.floors[id] && state.floors[id][state.currentFace]) || [];
-    list.forEach(entry => content.appendChild(makeChip(entry, id)));
-  });
-}
-function renderResourceArea() {
-  const zone = document.getElementById('resourceContent');
-  zone.innerHTML = '';
-  state.resource.forEach(entry => zone.appendChild(makeChip(entry, 'resource')));
-}
-function updateSummaryTotal() {
-  const s = state.summary;
-  const total = (s.pump || 0) + (s.tank || 0) + (s.rescue || 0) + (s.ambulance || 0) + (s.etc || 0);
-  document.getElementById('vTotalDisplay').textContent = total;
-}
-function renderAll() { renderBuildingArea(); renderResourceArea(); updateSummaryTotal(); }
-
-/* ── 면(A/B/C/D) 선택 ── */
-function setFace(face) {
-  state.currentFace = face;
-  document.querySelectorAll('.face-btn').forEach(b => b.classList.toggle('active', b.dataset.face === face));
-  document.getElementById('currentFaceLabel').textContent = FACE_NAMES[face];
-  saveState();
-  renderBuildingArea();
-}
-
-/* ── 팔레트(드래그 시작) ── */
-function setupPalette() {
-  const grid = document.getElementById('paletteGrid');
-  grid.innerHTML = '';
-  VEHICLE_TYPES.forEach(t => {
+function renderUnitGrid() {
+  const grid = document.getElementById('unitGrid'); grid.innerHTML = '';
+  units.forEach(u => {
+    const isPlaced = !!placedMap[u.name];
     const div = document.createElement('div');
-    div.className = 'v-palette-item';
-    div.dataset.type = t.key;
-    div.style.borderColor = t.color + '99';
-    div.innerHTML = '<span class="p-emoji">' + t.emoji + '</span><span class="p-name">' + t.label + '</span>';
-    div.addEventListener('pointerdown', onPaletteDown);
+    div.className = 'unit-icon' + (isPlaced?' placed':'') + (u.custom?' custom':'');
+    div.dataset.unitName = u.name;
+    div.style.borderColor = isPlaced ? '#1e293b' : u.color + '66';
+    div.innerHTML = '<span class="u-emoji">' + u.emoji + '</span><span class="u-name">' + escHtml(u.name) + '</span>';
+    if (!isPlaced) div.addEventListener('pointerdown', e => onDragStart(e, u.name));
     grid.appendChild(div);
   });
 }
-const ghost = document.getElementById('dragGhost');
-function moveGhost(x, y) { ghost.style.left = (x - 30) + 'px'; ghost.style.top = (y - 34) + 'px'; }
-function onPaletteDown(e) {
-  e.preventDefault();
-  const key = e.currentTarget.dataset.type;
-  dragType = VEHICLE_TYPES.find(t => t.key === key);
-  if (!dragType) return;
-  ghost.querySelector('.g-emoji').textContent = dragType.emoji;
-  ghost.querySelector('.g-label').textContent = dragType.label;
-  ghost.style.display = 'flex';
-  moveGhost(e.clientX, e.clientY);
-  document.addEventListener('pointermove', onDragMove);
-  document.addEventListener('pointerup', onDragUp);
-  document.addEventListener('pointercancel', onDragUp);
-}
-function onDragMove(e) {
-  moveGhost(e.clientX, e.clientY);
-  ghost.style.display = 'none';
-  const el = document.elementFromPoint(e.clientX, e.clientY);
-  ghost.style.display = 'flex';
-  const zone = el ? el.closest('.drop-zone') : null;
-  if (currentHL && currentHL !== zone) { currentHL.classList.remove('drag-over'); currentHL = null; }
-  if (zone && zone !== currentHL) { zone.classList.add('drag-over'); currentHL = zone; }
-}
-function onDragUp(e) {
-  document.removeEventListener('pointermove', onDragMove);
-  document.removeEventListener('pointerup', onDragUp);
-  document.removeEventListener('pointercancel', onDragUp);
-  if (currentHL) currentHL.classList.remove('drag-over');
-  ghost.style.display = 'none';
-  if (!dragType) { currentHL = null; return; }
-  const el = document.elementFromPoint(e.clientX, e.clientY);
-  const zone = el ? el.closest('.drop-zone') : null;
-  if (zone) {
-    const uid = 'u' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-    const entry = { uid, type: dragType.key, status: 0 };
-    if (zone.dataset.zoneType === 'resource') {
-      state.resource.push(entry);
-    } else if (zone.dataset.zoneType === 'floor') {
-      state.floors[zone.dataset.floorId][state.currentFace].push(entry);
-    }
-    saveState();
-    renderAll();
-  }
-  dragType = null; currentHL = null;
+
+document.getElementById('buildBtn').addEventListener('click', () => { generateBuilding(Math.min(parseInt(document.getElementById('groundFloors').value)||5,150), Math.min(parseInt(document.getElementById('basementFloors').value)||0,20)); });
+
+function generateBuilding(g, b) {
+  placedMap = {};
+  renderUnitGrid();
+  renderStaging();
+  const area = document.getElementById('buildingArea'); area.innerHTML = '';
+  area.appendChild(makeFloor('RF', '옥상', 'roof'));
+  for (let f = g; f >= 1; f--) area.appendChild(makeFloor(f + 'F', f + '층', 'ground'));
+  for (let b2 = 1; b2 <= b; b2++) area.appendChild(makeFloor('B' + b2, '지하' + b2, 'basement'));
 }
 
-/* ── 출동정보 요약 입력 ── */
-function setupSummaryInputs() {
-  SUMMARY_KEYS.forEach(k => {
-    const el = document.getElementById('cnt-' + k);
-    if (!el) return;
-    el.value = state.summary[k] || 0;
-    el.addEventListener('input', () => {
-      state.summary[k] = parseInt(el.value) || 0;
-      saveState();
-      updateSummaryTotal();
-    });
-  });
+function makeFloor(id, label, type) {
+  const d = document.createElement('div');
+  d.className = 'floor-zone ' + type;
+  d.innerHTML =
+    '<div class="floor-label">' + label + '</div>' +
+    '<div class="commander-slot" data-drop-type="commander" data-floor-id="' + id + '"></div>' +
+    '<div class="floor-content" id="fc-' + id + '" data-drop-type="floor" data-floor-id="' + id + '"></div>';
+  return d;
 }
 
-/* ── 전체 초기화 ── */
-function fullReset() {
-  if (!confirm('작전도를 전체 초기화할까요?\n(건물, 배치된 차량, 출동정보가 모두 삭제됩니다)')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  state = defaultState();
-  document.getElementById('groundFloors').value = state.ground;
-  document.getElementById('basementFloors').value = state.basement;
-  SUMMARY_KEYS.forEach(k => { const el = document.getElementById('cnt-' + k); if (el) el.value = 0; });
-  setFace('A');
-  renderAll();
-}
-
-/* ── 초기화 ── */
-setupPalette();
-setupSummaryInputs();
-document.querySelectorAll('.face-btn').forEach(b => b.addEventListener('click', () => setFace(b.dataset.face)));
-document.getElementById('buildBtn').addEventListener('click', () => {
-  const g = parseInt(document.getElementById('groundFloors').value) || 5;
-  const b = parseInt(document.getElementById('basementFloors').value) || 0;
-  generateBuilding(g, b);
+document.getElementById('resetBtn').addEventListener('click', () => {
+  placedMap = {};
+  document.querySelectorAll('.floor-content, .commander-slot').forEach(fc => fc.innerHTML = '');
+  renderUnitGrid();
+  renderStaging();
 });
-document.getElementById('fullResetBtn').addEventListener('click', fullReset);
 
-document.getElementById('groundFloors').value = state.ground;
-document.getElementById('basementFloors').value = state.basement;
-
-// 건물정보 자동입력용: ?gf=지상층수&bf=지하층수 파라미터가 있으면 새 건물로 자동 생성
-const params = new URLSearchParams(window.location.search);
-const gfParam = params.get('gf');
-const bfParam = params.get('bf');
-if (gfParam !== null || bfParam !== null) {
-  const g = parseInt(gfParam) || state.ground || 5;
-  const b = parseInt(bfParam) || state.basement || 0;
-  setFace(state.currentFace);
-  generateBuilding(g, b);
-} else {
-  setFace(state.currentFace);
-  renderAll();
+document.getElementById('addUnitBtn').addEventListener('click', addCustomUnit);
+document.getElementById('customUnitInput').addEventListener('keydown', e => { if (e.key === 'Enter') addCustomUnit(); });
+function addCustomUnit() {
+  const input = document.getElementById('customUnitInput'), name = input.value.trim();
+  if (!name || units.find(u => u.name === name)) { input.value = ''; return; }
+  units.push({ name, emoji: '🚒', color: UNIT_COLORS[units.length % UNIT_COLORS.length], custom: true });
+  input.value = '';
+  renderUnitGrid();
 }
+
+/* ── 자원대기소 렌더 ── */
+function renderStaging() {
+  const sc = document.getElementById('staging-content');
+  const names = Object.keys(placedMap).filter(n => placedMap[n].type === 'staging');
+  if (!names.length) { sc.innerHTML = '<span class="staging-empty-msg">여기로 출동대를 끌어다 대기시킬 수 있습니다</span>'; return; }
+  sc.innerHTML = '';
+  names.forEach(n => sc.appendChild(makeChip(n)));
+}
+
+/* ── 칩 생성 (드래그 가능) ── */
+function makeChip(unitName) {
+  const u = units.find(x => x.name === unitName);
+  const chip = document.createElement('div');
+  chip.className = 'placed-chip';
+  chip.dataset.unitName = unitName;
+  chip.style.background = u ? u.color : '#94a3b8';
+  chip.innerHTML = (u ? u.emoji : '🚒') + ' ' + escHtml(unitName) + ' <span class="remove-x">✕</span>';
+  chip.querySelector('.remove-x').addEventListener('click', e => {
+    e.stopPropagation();
+    removeFromCurrentLocation(unitName);
+    delete placedMap[unitName];
+    renderUnitGrid(); renderStaging();
+  });
+  chip.addEventListener('pointerdown', e => { if (e.target.classList.contains('remove-x')) return; onDragStart(e, unitName); });
+  return chip;
+}
+
+/* ── 공용 드래그 로직 ── */
+const ghost2 = document.getElementById('dragGhost');
+let dragging = null, currentHL = null;
+
+function onDragStart(e, unitName) {
+  if (e.button !== undefined && e.button !== 0) return;
+  e.preventDefault();
+  const u = units.find(x => x.name === unitName);
+  if (!u) return;
+  dragging = u;
+  ghost2.querySelector('.u-emoji').textContent = u.emoji;
+  ghost2.querySelector('.u-name').textContent = u.name;
+  ghost2.style.display = 'block';
+  moveGhost2(e.clientX, e.clientY);
+  document.addEventListener('pointermove', onPtrMove);
+  document.addEventListener('pointerup', onPtrUp);
+  document.addEventListener('pointercancel', onPtrUp);
+}
+
+function onPtrMove(e) {
+  if (!dragging) return;
+  moveGhost2(e.clientX, e.clientY);
+  ghost2.style.display = 'none';
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  ghost2.style.display = 'block';
+  const target = el ? el.closest('[data-drop-type]') : null;
+  if (currentHL && currentHL !== target) { currentHL.classList.remove('drag-over'); currentHL = null; }
+  if (target && target !== currentHL) { target.classList.add('drag-over'); currentHL = target; }
+}
+
+function onPtrUp(e) {
+  document.removeEventListener('pointermove', onPtrMove);
+  document.removeEventListener('pointerup', onPtrUp);
+  document.removeEventListener('pointercancel', onPtrUp);
+  if (currentHL) { currentHL.classList.remove('drag-over'); currentHL = null; }
+  ghost2.style.display = 'none';
+  if (!dragging) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const target = el ? el.closest('[data-drop-type]') : null;
+  if (target) {
+    const type = target.dataset.dropType;
+    if (type === 'floor') placeUnit(dragging.name, { type: 'floor', floorId: target.dataset.floorId });
+    else if (type === 'commander') placeUnit(dragging.name, { type: 'commander', floorId: target.dataset.floorId });
+    else if (type === 'staging') placeUnit(dragging.name, { type: 'staging' });
+  }
+  dragging = null;
+}
+
+function moveGhost2(x, y) { ghost2.style.left = (x - 38) + 'px'; ghost2.style.top = (y - 44) + 'px'; }
+
+/* ── 배치 처리 ── */
+function placeUnit(unitName, location) {
+  // 이동 전, 현재 위치에서 제거
+  removeFromCurrentLocation(unitName);
+
+  if (location.type === 'commander') {
+    // 단위지휘관 칸은 1개만 수용 — 기존에 다른 대가 있으면 대기 상태(자원대기소 X, 그냥 배치 해제)로 되돌림
+    const slot = document.querySelector('.commander-slot[data-floor-id="' + location.floorId + '"]');
+    if (slot && slot.firstChild) {
+      const occupiedName = slot.firstChild.dataset.unitName;
+      if (occupiedName && occupiedName !== unitName) {
+        delete placedMap[occupiedName];
+        slot.innerHTML = '';
+      }
+    }
+    placedMap[unitName] = { type: 'commander', floorId: location.floorId };
+    if (slot) { slot.innerHTML = ''; slot.appendChild(makeChip(unitName)); }
+  } else if (location.type === 'floor') {
+    placedMap[unitName] = { type: 'floor', floorId: location.floorId };
+    const fc = document.getElementById('fc-' + location.floorId);
+    if (fc) fc.appendChild(makeChip(unitName));
+  } else if (location.type === 'staging') {
+    placedMap[unitName] = { type: 'staging' };
+    renderStaging();
+  }
+
+  renderUnitGrid();
+}
+
+function removeFromCurrentLocation(unitName) {
+  const cur = placedMap[unitName];
+  if (!cur) return;
+  if (cur.type === 'floor') {
+    const fc = document.getElementById('fc-' + cur.floorId);
+    if (fc) { const c = fc.querySelector('[data-unit-name="' + cssEsc(unitName) + '"]'); if (c) c.remove(); }
+  } else if (cur.type === 'commander') {
+    const slot = document.querySelector('.commander-slot[data-floor-id="' + cssEsc(cur.floorId) + '"]');
+    if (slot) slot.innerHTML = '';
+  } else if (cur.type === 'staging') {
+    // renderStaging()에서 다시 그리므로 별도 DOM 제거 불필요
+  }
+}
+
+function cssEsc(s) { return String(s).replace(/(["\\])/g, '\\$1'); }
+function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+renderUnitGrid();
+renderStaging();
 </script>
 </body>
 </html>
