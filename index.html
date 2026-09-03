@@ -66,6 +66,10 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 .timeline-row .tl-sep { color: #475569; flex-shrink: 0; }
 .timeline-row .tl-text { flex: 1; color: #e2e8f0; word-break: break-all; }
 .timeline-row .tl-del { background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; flex-shrink: 0; padding: 2px 4px; }
+.timeline-row .tl-time, .timeline-row .tl-text { cursor: text; }
+.tl-edit-time, .tl-edit-text { background: #0f172a; border: 1px solid #38bdf8; border-radius: 4px; color: #e2e8f0; font-size: 12px; padding: 2px 4px; outline: none; font-family: inherit; }
+.tl-edit-time { width: 52px; flex-shrink: 0; font-family: monospace; color: #38bdf8; }
+.tl-edit-text { flex: 1; min-width: 0; }
 #timelineEmpty { color: #475569; font-size: 11px; padding: 8px 4px; text-align: center; }
 
 /* ══ 오른쪽 컬럼: 출동대 패널 ══ */
@@ -467,15 +471,50 @@ function renderTimeline() {
   timeline.forEach((entry, idx) => {
     const row = document.createElement('div');
     row.className = 'timeline-row';
-    row.innerHTML =
-      '<span class="tl-time">' + escHtml(entry.time) + '</span>' +
-      '<span class="tl-sep">|</span>' +
-      '<span class="tl-text">' + escHtml(entry.text) + '</span>' +
-      '<button class="tl-del">✕</button>';
-    row.querySelector('.tl-del').addEventListener('click', () => { timeline.splice(idx, 1); renderTimeline(); saveState(); });
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'tl-time';
+    timeSpan.textContent = entry.time;
+    timeSpan.addEventListener('dblclick', () => editTimelineField(idx, 'time', timeSpan));
+
+    const sep = document.createElement('span');
+    sep.className = 'tl-sep';
+    sep.textContent = '|';
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'tl-text';
+    textSpan.textContent = entry.text;
+    textSpan.addEventListener('dblclick', () => editTimelineField(idx, 'text', textSpan));
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'tl-del';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', () => { timeline.splice(idx, 1); renderTimeline(); saveState(); });
+
+    row.appendChild(timeSpan); row.appendChild(sep); row.appendChild(textSpan); row.appendChild(delBtn);
     list.appendChild(row);
   });
   list.scrollTop = list.scrollHeight;
+}
+
+function editTimelineField(idx, field, spanEl) {
+  const input = document.createElement('input');
+  input.className = field === 'time' ? 'tl-edit-time' : 'tl-edit-text';
+  input.value = timeline[idx][field];
+  spanEl.replaceWith(input);
+  input.focus();
+  input.select();
+  let done = false;
+  const commit = () => {
+    if (done) return;
+    done = true;
+    const v = input.value.trim();
+    if (v) timeline[idx][field] = v;
+    renderTimeline();
+    saveState();
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
 }
 
 /* ══ 초기화 ══ */
