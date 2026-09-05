@@ -19,6 +19,7 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 #floorControls label { color: #e2e8f0; font-size: 13px; display: flex; align-items: center; gap: 4px; }
 .num-input { width: 50px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 14px; padding: 5px 4px; text-align: center; outline: none; }
 #buildBtn { background: #dc2626; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
+#pasteBtn { background: #0369a1; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
 #customUnitRow { display: flex; gap: 6px; }
 #customUnitInput { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 12px; padding: 6px 8px; outline: none; }
 #customUnitInput::placeholder { color: #475569; }
@@ -78,10 +79,13 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 .unit-group-label { font-size: 10px; color: #94a3b8; font-weight: 700; margin: 8px 0 4px; padding-left: 2px; }
 .unit-group-label:first-child { margin-top: 0; }
 .unit-group-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 4px; }
-.unit-icon { background: #111827; border: 1.5px solid #1e293b; border-radius: 9px; padding: 7px 4px; text-align: center; font-size: 10px; font-weight: 700; color: #e2e8f0; cursor: grab; user-select: none; touch-action: none; -webkit-tap-highlight-color: transparent; transition: opacity 0.2s; line-height: 1.3; }
+.unit-icon { position: relative; background: #111827; border: 1.5px solid #1e293b; border-radius: 9px; padding: 7px 4px; text-align: center; font-size: 10px; font-weight: 700; color: #e2e8f0; cursor: grab; user-select: none; touch-action: none; -webkit-tap-highlight-color: transparent; transition: opacity 0.2s; line-height: 1.3; }
 .unit-icon .u-emoji { font-size: 18px; display: block; margin-bottom: 2px; }
 .unit-icon.placed { opacity: 0.3; cursor: default; }
 .unit-icon.custom { border-color: #4ade80 !important; }
+.unit-delete-x { position: absolute; top: 1px; right: 2px; width: 14px; height: 14px; line-height: 14px; text-align: center; font-size: 9px; color: #ef4444; opacity: 0.55; cursor: pointer; border-radius: 50%; z-index: 2; }
+.unit-delete-x:hover { opacity: 1; background: rgba(239,68,68,0.15); }
+.unit-summary { font-size: 10px; color: #94a3b8; padding: 0 2px 6px; letter-spacing: 0.02em; }
 #dragGhost { position: fixed; pointer-events: none; z-index: 9999; background: #1e3a5f; border: 2px solid #38bdf8; border-radius: 9px; padding: 7px 4px; text-align: center; font-size: 10px; font-weight: 700; color: #e2e8f0; width: 75px; opacity: 0.92; display: none; box-shadow: 0 6px 20px rgba(0,0,0,.5); line-height: 1.3; }
 #dragGhost .u-emoji { font-size: 18px; display: block; margin-bottom: 2px; }
 .reset-btn { width: 100%; margin-top: 6px; padding: 7px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: #94a3b8; font-size: 12px; cursor: pointer; }
@@ -106,6 +110,7 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
       <label>지상 <input class="num-input" id="groundFloors" type="number" min="1" max="150" value="5"> 층</label>
       <label>지하 <input class="num-input" id="basementFloors" type="number" min="0" max="20" value="1"> 층</label>
       <button id="buildBtn">🏢 건물 생성</button>
+      <button id="pasteBtn" type="button">📋 붙여넣기</button>
     </div>
     <div id="customUnitRow">
       <input id="customUnitInput" type="text" placeholder="출동대 이름 직접 입력 후 추가">
@@ -114,7 +119,7 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
   </div>
   <div id="mapMain">
     <div id="leftColumn">
-      <div id="buildingArea"><div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르세요</div></div>
+      <div id="buildingArea"><div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르거나<br>📋 붙여넣기를 누르세요</div></div>
       <div id="timelineSection">
         <span class="unit-section-label">기록 — 시간 | 내용 (예: 10:00 | 완진)</span>
         <div id="timelineInputRow">
@@ -127,6 +132,7 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
     </div>
     <div id="unitPanel">
       <span class="unit-section-label">출동대 — 건물 층/단위지휘관 칸으로 끌어다 배치 (더블클릭: 이름 수정)</span>
+      <div id="unitSummary" class="unit-summary"></div>
       <div id="unitGrid"></div>
       <button class="reset-btn" id="resetBtn">🔄 배치 초기화</button>
       <div id="stagingSection">
@@ -243,13 +249,46 @@ function renderUnitGrid() {
       div.className = 'unit-icon' + (isPlaced ? ' placed' : '') + (u.custom ? ' custom' : '');
       div.dataset.unitName = u.name;
       div.style.borderColor = isPlaced ? '#1e293b' : u.color + '66';
-      div.innerHTML = '<span class="u-emoji">' + unitEmoji(u) + '</span><span class="u-name">' + escHtml(u.name) + '</span>';
-      if (!isPlaced) div.addEventListener('pointerdown', e => onDragStart(e, u.name));
-      div.addEventListener('dblclick', e => onUnitDblClick(e, u.name));
+      div.innerHTML = '<span class="unit-delete-x">✕</span><span class="u-emoji">' + unitEmoji(u) + '</span><span class="u-name">' + escHtml(u.name) + '</span>';
+      if (!isPlaced) div.addEventListener('pointerdown', e => { if (e.target.classList.contains('unit-delete-x')) return; onDragStart(e, u.name); });
+      div.addEventListener('dblclick', e => { if (e.target.classList.contains('unit-delete-x')) return; onUnitDblClick(e, u.name); });
+      div.querySelector('.unit-delete-x').addEventListener('click', e => {
+        e.stopPropagation();
+        deleteUnitEntirely(u.name);
+      });
       grid.appendChild(div);
     });
     container.appendChild(grid);
   });
+  updateUnitSummary();
+}
+
+/* ══ 출동대 완전 삭제(로스터에서 제거) ══ */
+function deleteUnitEntirely(name) {
+  units = units.filter(u => u.name !== name);
+  delete placedMap[name];
+  renderUnitGrid();
+  renderPlacements();
+  saveState();
+}
+
+/* ══ 출동대 종류별 집계 ══ */
+function classifyUnit(name) {
+  if (name.indexOf('구조') > -1) return 'rescue';
+  if (name.indexOf('구급') > -1) return 'ambulance';
+  if (name.indexOf('탱크') > -1) return 'tank';
+  if (name.endsWith('대')) return 'pump';
+  return 'etc';
+}
+function updateUnitSummary() {
+  const el = document.getElementById('unitSummary');
+  if (!el) return;
+  const counts = { pump: 0, tank: 0, rescue: 0, ambulance: 0, etc: 0 };
+  units.forEach(u => {
+    const c = classifyUnit(u.name);
+    counts[c]++;
+  });
+  el.textContent = '🚒펌프 ' + counts.pump + ' · 🛢️탱크 ' + counts.tank + ' · 🦺구조 ' + counts.rescue + ' · 🚑구급 ' + counts.ambulance + ' · ➕기타 ' + counts.etc;
 }
 
 /* ══ 건물 생성 ══ */
@@ -263,6 +302,49 @@ document.getElementById('buildBtn').addEventListener('click', () => {
   renderPlacements();
   saveState();
 });
+
+/* ══ 📋 붙여넣기: 북마클릿에서 복사한 JSON을 적용 ══ */
+document.getElementById('pasteBtn').addEventListener('click', () => {
+  const str = window.prompt('북마클릿에서 복사한 내용을 붙여넣어 주세요 (Ctrl+V 후 확인):', '');
+  if (!str) return;
+  let payload;
+  try {
+    payload = JSON.parse(str);
+  } catch (e) {
+    alert('올바른 데이터 형식이 아닙니다. 북마클릿을 다시 실행해 복사한 뒤 시도해주세요.');
+    return;
+  }
+  applyPastedPayload(payload);
+});
+
+function applyPastedPayload(payload) {
+  // 건물이 아직 생성되지 않은 첫 붙여넣기일 때만 층수를 적용해 건물을 생성합니다.
+  // 이미 건물이 있는 상태(추가 편성 등으로 재붙여넣기)에서는 층 배치를 보존하기 위해 건물을 다시 만들지 않습니다.
+  if (!built) {
+    const g = Math.min(parseInt(payload.ground) || 5, 150);
+    const b = Math.min(parseInt(payload.basement) || 0, 20);
+    ground = g; basement = b; built = true;
+    document.getElementById('groundFloors').value = g;
+    document.getElementById('basementFloors').value = b;
+    buildFloors(g, b);
+  }
+
+  const names = Array.isArray(payload.units) ? payload.units : [];
+  let addedCount = 0;
+  names.forEach(name => {
+    if (!name) return;
+    if (!units.find(u => u.name === name)) {
+      units.push({ name, color: UNIT_COLORS[units.length % UNIT_COLORS.length], custom: true });
+      addedCount++;
+    }
+    // 배치(자원대기소/임시의료소/RIT/건물 내부)는 건드리지 않습니다 — 직접 드래그해 배치하세요.
+  });
+
+  renderUnitGrid();
+  renderPlacements();
+  saveState();
+  alert('불러오기 완료: 지상 ' + ground + '층 / 지하 ' + basement + '층\n오른쪽 출동대 목록에 새로 추가된 차량 ' + addedCount + '개.\n(배치는 직접 드래그해주세요)');
+}
 
 function buildFloors(g, b) {
   const area = document.getElementById('buildingArea');
@@ -293,9 +375,17 @@ function applyFloorTexts() {
 }
 
 document.getElementById('resetBtn').addEventListener('click', () => {
+  const ok = window.confirm('배치, 부상자 기록, 타임라인 기록, 오른쪽 출동대 목록, 건물 정보까지 모두 초기화합니다.\n(새로운 화재 발생 시 사용)\n계속하시겠습니까?');
+  if (!ok) return;
+  units = [];
   placedMap = {};
+  floorTexts = {};
+  timeline = [];
+  built = false;
+  document.getElementById('buildingArea').innerHTML = '<div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르거나<br>📋 붙여넣기를 누르세요</div>';
   renderUnitGrid();
   renderPlacements();
+  renderTimeline();
   saveState();
 });
 
@@ -450,6 +540,14 @@ function currentTimeHHMM() {
   return p(now.getHours()) + ':' + p(now.getMinutes());
 }
 document.getElementById('timelineTime').value = currentTimeHHMM();
+let timelineTimeManual = false;
+const timelineTimeInput = document.getElementById('timelineTime');
+timelineTimeInput.addEventListener('input', () => { timelineTimeManual = true; });
+setInterval(() => {
+  if (!timelineTimeManual && document.activeElement !== timelineTimeInput) {
+    timelineTimeInput.value = currentTimeHHMM();
+  }
+}, 1000);
 
 document.getElementById('timelineAddBtn').addEventListener('click', addTimelineEntry);
 document.getElementById('timelineText').addEventListener('keydown', e => { if (e.key === 'Enter') addTimelineEntry(); });
@@ -461,6 +559,7 @@ function addTimelineEntry() {
   timeline.push({ time, text });
   textEl.value = '';
   timeEl.value = currentTimeHHMM();
+  timelineTimeManual = false;
   renderTimeline();
   saveState();
 }
