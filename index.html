@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -21,27 +20,42 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 .num-input { width: 50px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 14px; padding: 5px 4px; text-align: center; outline: none; }
 #buildBtn { background: #dc2626; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
 #pasteBtn { background: #0369a1; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
+#addFireBtn { background: #b91c1c; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
 #customUnitRow { display: flex; gap: 6px; }
 #customUnitInput { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 12px; padding: 6px 8px; outline: none; }
 #customUnitInput::placeholder { color: #475569; }
 #addUnitBtn { background: #065f46; color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
 
+#infoRow { display: flex; gap: 10px; align-items: center; }
+#incidentTimes { flex: 4; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+#incidentTimes label { color: #e2e8f0; font-size: 12px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.time-input { width: 56px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #38bdf8; font-size: 12px; padding: 5px 4px; text-align: center; outline: none; font-family: monospace; }
+.count-input { width: 48px; }
+.note-row { flex: 1 1 100%; }
+.note-input { flex: 1; width: auto; font-family: inherit; text-align: left; color: #e2e8f0; }
+#infoRow #customUnitRow { flex: 1; min-width: 0; }
+
+#buildingWrapper { position: relative; flex: 1 1 auto; overflow: hidden; min-height: 60px; }
+#fireIconsLayer { position: absolute; inset: 0; pointer-events: none; z-index: 50; }
+.fire-icon-item { position: absolute; font-size: 26px; line-height: 1; cursor: grab; touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 2px 4px rgba(0,0,0,.6)); pointer-events: auto; }
+.fire-del { position: absolute; top: -6px; right: -8px; width: 15px; height: 15px; line-height: 15px; text-align: center; font-size: 9px; font-weight: 700; color: #fff; background: #ef4444; border-radius: 50%; cursor: pointer; }
+
 #mapMain { flex: 1; display: flex; overflow: hidden; }
 
 /* ══ 왼쪽 컬럼: 건물 + 기록 ══ */
 #leftColumn { width: 80%; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid #1e293b; }
-#buildingArea { flex: 1 1 auto; overflow-y: auto; padding: 8px 6px 8px 8px; min-height: 60px; }
+#buildingArea { position: absolute; inset: 0; overflow-y: auto; padding: 8px 6px 8px 8px; }
 #noBuildingMsg { color: #475569; font-size: 12px; text-align: center; margin-top: 30px; line-height: 1.8; }
 
 .floor-zone { display: flex; align-items: stretch; min-height: 46px; margin-bottom: 2px; border-radius: 6px; border: 1.5px solid #1e293b; overflow: hidden; transition: border-color 0.12s; }
 .floor-zone.ground { background: #0f1f35; }
 .floor-zone.basement { background: #0a1520; }
 .floor-zone.roof { background: #1a0a2e; border-color: #7c3aed; min-height: 34px; }
-.floor-label { width: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: monospace; background: #1e293b; color: #94a3b8; }
+.floor-label { width: 45px; flex-shrink: 0; display: flex; align-items: center; justify-content: left; font-size: 10px; font-weight: 700; font-family: monospace; background: #1e293b; color: #94a3b8; }
 .floor-zone.basement .floor-label { background: #162032; color: #64748b; }
 .floor-zone.roof .floor-label { background: #2d1b69; color: #c4b5fd; }
 
-.commander-slot { width: 90px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #1a1030; border-right: 1px solid #1e293b; border-left: 1px solid #1e293b; padding: 2px; transition: background 0.12s, border-color 0.12s; position: relative; }
+.commander-slot { width: 70px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #1a1030; border-right: 1px solid #1e293b; border-left: 1px solid #1e293b; padding: 2px; transition: background 0.12s, border-color 0.12s; position: relative; }
 .commander-slot.drag-over { background: rgba(250,204,21,0.15); border-color: #facc15; }
 .commander-slot .placed-chip { padding: 2px 4px; font-size: 8px; }
 .commander-slot .cs-hint { font-size: 9px; opacity: 0.35; pointer-events: none; }
@@ -97,6 +111,13 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 .staging-empty-msg { color: #475569; font-size: 11px; padding: 4px; }
 #specialRow { display: flex; gap: 6px; margin-top: 8px; }
 #specialRow > div { flex: 1; min-width: 0; }
+
+/* ══ 협력기관 섹션 ══ */
+#agencySection { margin-top: 8px; }
+.agency-icons { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+.agency-icon { background: #111827; border: 1.5px solid #1e293b; border-radius: 9px; padding: 6px 5px; text-align: center; font-size: 9px; font-weight: 700; color: #e2e8f0; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; min-width: 56px; line-height: 1.3; }
+.agency-icon .a-emoji { font-size: 16px; display: block; margin-bottom: 2px; }
+.agency-icon .a-time { font-family: monospace; color: #38bdf8; font-size: 9px; display: block; margin-top: 2px; cursor: text; }
 </style>
 </head>
 <body>
@@ -112,15 +133,32 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
       <label>지하 <input class="num-input" id="basementFloors" type="number" min="0" max="20" value="1"> 층</label>
       <button id="buildBtn">🏢 건물 생성</button>
       <button id="pasteBtn" type="button">📋 붙여넣기</button>
+      <button id="addFireBtn" type="button">🔥 화재지점 추가</button>
     </div>
-    <div id="customUnitRow">
-      <input id="customUnitInput" type="text" placeholder="출동대 이름 직접 입력 후 추가">
-      <button id="addUnitBtn">➕ 추가</button>
+    <div id="infoRow">
+      <div id="incidentTimes">
+        <label>신고 <input class="time-input hhmm-input" id="timeReport" type="text" placeholder="15:53"></label>
+        <label>대응1단계 <input class="time-input hhmm-input" id="timeLevel1" type="text" placeholder="16:05"></label>
+        <label>초진 <input class="time-input hhmm-input" id="timeInitial" type="text" placeholder="16:10"></label>
+        <label>완진 <input class="time-input hhmm-input" id="timeComplete" type="text" placeholder="17:00"></label>
+        <label>자력대피 <input class="time-input count-input" id="timeSelfEvac" type="text" placeholder="명"></label>
+        <label>병원이송 <input class="time-input count-input" id="timeHospital" type="text" placeholder="명"></label>
+        <label>부상 <input class="time-input count-input" id="timeInjured" type="text" placeholder="명"></label>
+        <label>사망 <input class="time-input count-input" id="timeDeceased" type="text" placeholder="명"></label>
+        <label class="note-row">비고 <input class="time-input note-input" id="deceasedNote" type="text" placeholder="기타관련 메모"></label>
+      </div>
+      <div id="customUnitRow">
+        <input id="customUnitInput" type="text" placeholder="출동대 이름 직접 입력">
+        <button id="addUnitBtn">➕</button>
+      </div>
     </div>
   </div>
   <div id="mapMain">
     <div id="leftColumn">
-      <div id="buildingArea"><div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르거나<br>📋 붙여넣기를 누르세요</div></div>
+      <div id="buildingWrapper">
+        <div id="buildingArea"><div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르거나<br>📋 붙여넣기를 누르세요</div></div>
+        <div id="fireIconsLayer"></div>
+      </div>
       <div id="timelineSection">
         <span class="unit-section-label">기록 — 시간 | 내용 (예: 10:00 | 완진)</span>
         <div id="timelineInputRow">
@@ -155,6 +193,13 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
             </div>
           </div>
         </div>
+        <div id="agencySection">
+          <span class="unit-section-label">협력기관 — 클릭 시 시간 자동 기록 (시간 더블클릭: 수정) / 출동대도 끌어다 놓기 가능</span>
+          <div class="staging-zone">
+            <div class="agency-icons" id="agencyIcons"></div>
+            <div class="staging-content" id="agency-content" data-drop-type="agency"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -163,7 +208,7 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 <div id="dragGhost"><span class="u-emoji">🚒</span><span class="u-name"></span></div>
 
 <script>
-const STORAGE_KEY = 'fireOpsBoard_v2';
+const STORAGE_KEY = 'fireOpsBoard_v3';
 
 /* ── 출동대 그룹/이모지 ── */
 function groupOf(name) {
@@ -186,10 +231,23 @@ const DEFAULT_UNIT_NAMES = [
 ];
 let units = DEFAULT_UNIT_NAMES.map((name, i) => ({ name, color: UNIT_COLORS[i % UNIT_COLORS.length], custom: false }));
 
-// placedMap[unitName] = { type: 'floor'|'commander'|'staging'|'medical'|'rit', floorId?: string }
+/* ── 협력기관 목록 ── */
+const AGENCY_LIST = [
+  { key: 'firefighter', label: '양천하나', emoji: '👨‍🚒' },
+  { key: 'police', label: '경찰관', emoji: '👮' },
+  { key: 'gas', label: '도시가스', emoji: '🔧' },
+  { key: 'electric', label: '한국전력', emoji: '⚡' },
+  { key: 'ecc', label: '긴급구조통제단', emoji: '🚨' }
+];
+let agencyTimes = {}; // key -> "HH:MM"
+
+// placedMap[unitName] = { type: 'floor'|'commander'|'staging'|'medical'|'rit'|'agency', floorId?: string }
 let placedMap = {};
 let floorTexts = {};      // { floorId: "부상자 텍스트" }
 let timeline = [];        // [{ time, text }]
+let incidentTimes = { report: '', level1: '', initial: '', complete: '', selfEvac: '', hospital: '', injured: '', deceased: '' };
+let deceasedNote = '';
+let fireIcons = [{ id: 'fire1', left: 10, top: 10 }];
 let built = false, ground = 5, basement = 1;
 
 /* ══ 시계 ══ */
@@ -204,7 +262,7 @@ setInterval(updateClock, 1000);
 /* ══ 저장/불러오기 ══ */
 function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ units, placedMap, floorTexts, timeline, built, ground, basement }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ units, placedMap, floorTexts, timeline, incidentTimes, deceasedNote, fireIcons, agencyTimes, built, ground, basement }));
   } catch (e) {}
 }
 function loadState() {
@@ -215,6 +273,20 @@ function loadState() {
   if (s.placedMap) placedMap = s.placedMap;
   if (s.floorTexts) floorTexts = s.floorTexts;
   if (Array.isArray(s.timeline)) timeline = s.timeline;
+  if (s.incidentTimes) {
+    incidentTimes = Object.assign({ report: '', level1: '', initial: '', complete: '', selfEvac: '', hospital: '', injured: '', deceased: '' }, s.incidentTimes);
+    Object.keys(timeFieldMap).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = incidentTimes[timeFieldMap[id]] || '';
+    });
+  }
+  if (typeof s.deceasedNote === 'string') {
+    deceasedNote = s.deceasedNote;
+    const el = document.getElementById('deceasedNote');
+    if (el) el.value = deceasedNote;
+  }
+  if (Array.isArray(s.fireIcons) && s.fireIcons.length) fireIcons = s.fireIcons;
+  if (s.agencyTimes) agencyTimes = s.agencyTimes;
   if (s.built) {
     built = true;
     ground = s.ground || 5;
@@ -338,7 +410,7 @@ function applyPastedPayload(payload) {
       units.push({ name, color: UNIT_COLORS[units.length % UNIT_COLORS.length], custom: true });
       addedCount++;
     }
-    // 배치(자원대기소/임시의료소/RIT/건물 내부)는 건드리지 않습니다 — 직접 드래그해 배치하세요.
+    // 배치(자원대기소/임시의료소/RIT/협력기관/건물 내부)는 건드리지 않습니다 — 직접 드래그해 배치하세요.
   });
 
   renderUnitGrid();
@@ -375,18 +447,120 @@ function applyFloorTexts() {
   });
 }
 
+/* ══ 사건 개요 시간/인원 (신고/대응1단계/초진/완진/자력대피/병원이송/부상/사망) ══ */
+const timeFieldMap = {
+  timeReport: 'report', timeLevel1: 'level1', timeInitial: 'initial', timeComplete: 'complete',
+  timeSelfEvac: 'selfEvac', timeHospital: 'hospital', timeInjured: 'injured', timeDeceased: 'deceased'
+};
+
+function formatHHMM(raw) {
+  const digits = raw.replace(/[^0-9]/g, '');
+  if (digits.length === 4) return digits.slice(0, 2) + ':' + digits.slice(2);
+  if (digits.length === 3) return '0' + digits[0] + ':' + digits.slice(1);
+  return raw;
+}
+function formatCount(raw) {
+  const digits = raw.replace(/[^0-9]/g, '');
+  return digits ? digits + '명' : '';
+}
+
+Object.keys(timeFieldMap).forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', () => { incidentTimes[timeFieldMap[id]] = el.value; saveState(); });
+  el.addEventListener('blur', () => {
+    if (el.classList.contains('hhmm-input')) {
+      if (el.value && el.value.indexOf(':') === -1) el.value = formatHHMM(el.value);
+    } else if (el.classList.contains('count-input')) {
+      el.value = formatCount(el.value);
+    }
+    incidentTimes[timeFieldMap[id]] = el.value;
+    saveState();
+  });
+});
+document.getElementById('deceasedNote').addEventListener('input', () => {
+  deceasedNote = document.getElementById('deceasedNote').value;
+  saveState();
+});
+
+/* ══ 화재 발생 위치 아이콘 — 여러 개 배치/이동/삭제 가능 ══ */
+const buildingWrapper = document.getElementById('buildingWrapper');
+let fireDragState = null;
+
+function renderFireIcons() {
+  const layer = document.getElementById('fireIconsLayer');
+  layer.innerHTML = '';
+  fireIcons.forEach(f => {
+    const el = document.createElement('div');
+    el.className = 'fire-icon-item';
+    el.style.left = f.left + 'px';
+    el.style.top = f.top + 'px';
+    el.dataset.fireId = f.id;
+    el.title = '드래그해서 이동 · ✕로 삭제';
+    el.innerHTML = '🔥<span class="fire-del">✕</span>';
+    el.querySelector('.fire-del').addEventListener('click', e => {
+      e.stopPropagation();
+      fireIcons = fireIcons.filter(x => x.id !== f.id);
+      renderFireIcons();
+      saveState();
+    });
+    el.addEventListener('pointerdown', e => {
+      if (e.target.classList.contains('fire-del')) return;
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      fireDragState = { id: f.id, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+      document.addEventListener('pointermove', onFireMove);
+      document.addEventListener('pointerup', onFireUp);
+    });
+    layer.appendChild(el);
+  });
+}
+function onFireMove(e) {
+  if (!fireDragState) return;
+  const f = fireIcons.find(x => x.id === fireDragState.id);
+  if (!f) return;
+  const wrapRect = buildingWrapper.getBoundingClientRect();
+  let x = e.clientX - wrapRect.left - fireDragState.offsetX;
+  let y = e.clientY - wrapRect.top - fireDragState.offsetY;
+  x = Math.max(0, Math.min(x, wrapRect.width - 30));
+  y = Math.max(0, Math.min(y, wrapRect.height - 30));
+  f.left = x; f.top = y;
+  const el = document.querySelector('.fire-icon-item[data-fire-id="' + cssEsc(f.id) + '"]');
+  if (el) { el.style.left = x + 'px'; el.style.top = y + 'px'; }
+}
+function onFireUp() {
+  document.removeEventListener('pointermove', onFireMove);
+  document.removeEventListener('pointerup', onFireUp);
+  fireDragState = null;
+  saveState();
+}
+document.getElementById('addFireBtn').addEventListener('click', () => {
+  const n = fireIcons.length;
+  fireIcons.push({ id: 'fire' + Date.now() + Math.floor(Math.random() * 1000), left: 10 + (n * 22) % 160, top: 10 + (n * 22) % 160 });
+  renderFireIcons();
+  saveState();
+});
+
 document.getElementById('resetBtn').addEventListener('click', () => {
-  const ok = window.confirm('배치, 부상자 기록, 타임라인 기록, 오른쪽 출동대 목록, 건물 정보까지 모두 초기화합니다.\n(새로운 화재 발생 시 사용)\n계속하시겠습니까?');
+  const ok = window.confirm('배치, 부상자 기록, 타임라인 기록, 오른쪽 출동대 목록, 건물 정보, 사건 시간/인원/비고, 협력기관 기록, 화재 위치 표시까지 모두 초기화합니다.\n(새로운 화재 발생 시 사용)\n계속하시겠습니까?');
   if (!ok) return;
   units = [];
   placedMap = {};
   floorTexts = {};
   timeline = [];
+  incidentTimes = { report: '', level1: '', initial: '', complete: '', selfEvac: '', hospital: '', injured: '', deceased: '' };
+  deceasedNote = '';
+  fireIcons = [{ id: 'fire1', left: 10, top: 10 }];
+  agencyTimes = {};
   built = false;
   document.getElementById('buildingArea').innerHTML = '<div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르거나<br>📋 붙여넣기를 누르세요</div>';
+  Object.keys(timeFieldMap).forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('deceasedNote').value = '';
+  renderFireIcons();
   renderUnitGrid();
   renderPlacements();
   renderTimeline();
+  renderAgencyIcons();
   saveState();
 });
 
@@ -410,7 +584,7 @@ function renderPlacements() {
       el.innerHTML = '';
     }
   });
-  ['staging-content', 'medical-content', 'rit-content'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
+  ['staging-content', 'medical-content', 'rit-content', 'agency-content'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
 
   Object.keys(placedMap).forEach(unitName => {
     const loc = placedMap[unitName];
@@ -420,6 +594,7 @@ function renderPlacements() {
     else if (loc.type === 'staging') target = document.getElementById('staging-content');
     else if (loc.type === 'medical') target = document.getElementById('medical-content');
     else if (loc.type === 'rit') target = document.getElementById('rit-content');
+    else if (loc.type === 'agency') target = document.getElementById('agency-content');
     if (!target) return;
     if (loc.type === 'commander') target.innerHTML = '';
     target.appendChild(makeChip(unitName));
@@ -428,6 +603,7 @@ function renderPlacements() {
   emptyMsgIfNeeded('staging-content', '여기로 출동대를 끌어다 대기시킬 수 있습니다');
   emptyMsgIfNeeded('medical-content', '부상자 처치 중인 출동대를 배치하세요');
   emptyMsgIfNeeded('rit-content', 'RIT 대기 출동대를 배치하세요');
+  emptyMsgIfNeeded('agency-content', '유관기관 담당 출동대를 배치하세요');
 }
 function emptyMsgIfNeeded(id, msg) {
   const el = document.getElementById(id);
@@ -512,6 +688,7 @@ function onPtrUp(e) {
     else if (type === 'staging') placeUnit(dragging.name, { type: 'staging' });
     else if (type === 'medical') placeUnit(dragging.name, { type: 'medical' });
     else if (type === 'rit') placeUnit(dragging.name, { type: 'rit' });
+    else if (type === 'agency') placeUnit(dragging.name, { type: 'agency' });
   }
   dragging = null;
 }
@@ -533,6 +710,46 @@ function placeUnit(unitName, location) {
 
 function cssEsc(s) { return String(s).replace(/(["\\])/g, '\\$1'); }
 function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ══ 협력기관 — 클릭 시 시간 자동 기록, 더블클릭으로 수동 수정 ══ */
+function renderAgencyIcons() {
+  const container = document.getElementById('agencyIcons');
+  container.innerHTML = '';
+  AGENCY_LIST.forEach(a => {
+    const div = document.createElement('div');
+    div.className = 'agency-icon';
+    div.dataset.agencyKey = a.key;
+    const timeVal = agencyTimes[a.key] || '';
+    div.innerHTML = '<span class="a-emoji">' + a.emoji + '</span>' + escHtml(a.label) + '<span class="a-time">' + escHtml(timeVal || '--:--') + '</span>';
+    div.addEventListener('click', e => {
+      if (e.target.closest('.a-time')) return;
+      agencyTimes[a.key] = currentTimeHHMM();
+      renderAgencyIcons();
+      saveState();
+    });
+    const timeSpan = div.querySelector('.a-time');
+    timeSpan.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      const input = document.createElement('input');
+      input.className = 'tl-edit-time';
+      input.style.width = '46px';
+      input.value = agencyTimes[a.key] || '';
+      timeSpan.replaceWith(input);
+      input.focus(); input.select();
+      let done = false;
+      const commit = () => {
+        if (done) return;
+        done = true;
+        agencyTimes[a.key] = input.value.trim();
+        renderAgencyIcons();
+        saveState();
+      };
+      input.addEventListener('blur', commit);
+      input.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); } });
+    });
+    container.appendChild(div);
+  });
+}
 
 /* ══ 기록(타임라인) ══ */
 function currentTimeHHMM() {
@@ -619,9 +836,11 @@ function editTimelineField(idx, field, spanEl) {
 
 /* ══ 초기화 ══ */
 loadState();
+renderFireIcons();
 renderUnitGrid();
 renderPlacements();
 renderTimeline();
+renderAgencyIcons();
 </script>
 </body>
 </html>
