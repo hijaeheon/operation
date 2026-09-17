@@ -14,13 +14,18 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 #mapHeader { padding: 10px 12px 8px; background: rgba(13,20,40,0.97); border-bottom: 1px solid #1e293b; flex-shrink: 0; }
 #headerTop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 #headerTitle { color: #94a3b8; font-size: 12px; font-weight: 700; }
+#clockBlock { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+#clockRow { display: flex; align-items: baseline; gap: 8px; }
+#clockLabel { color: #64748b; font-size: 10px; font-weight: 700; }
 #clock { font-family: monospace; color: #38bdf8; font-size: 15px; font-weight: 700; letter-spacing: 0.03em; }
+#activeTimeRow { display: flex; align-items: baseline; gap: 8px; }
+#activeTimeLabel { color: #f87171; font-size: 10px; font-weight: 700; }
+#activeTime { font-family: monospace; color: #ef4444; font-size: 15px; font-weight: 700; letter-spacing: 0.03em; }
 #floorControls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
 #floorControls label { color: #e2e8f0; font-size: 13px; display: flex; align-items: center; gap: 4px; }
 .num-input { width: 50px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 14px; padding: 5px 4px; text-align: center; outline: none; }
 #buildBtn { background: #dc2626; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
 #pasteBtn { background: #0369a1; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
-#addFireBtn { background: #b91c1c; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
 #customUnitRow { display: flex; gap: 6px; }
 #customUnitInput { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 12px; padding: 6px 8px; outline: none; }
 #customUnitInput::placeholder { color: #475569; }
@@ -36,14 +41,22 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 #infoRow #customUnitRow { flex: 1; min-width: 0; }
 
 #buildingWrapper { position: relative; flex: 1 1 auto; overflow: hidden; min-height: 60px; }
-#fireIconsLayer { position: absolute; inset: 0; pointer-events: none; z-index: 50; }
+#fireIconsLayer { position: relative; height: 0; overflow: visible; pointer-events: none; z-index: 50; }
 .fire-icon-item { position: absolute; font-size: 26px; line-height: 1; cursor: grab; touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 2px 4px rgba(0,0,0,.6)); pointer-events: auto; }
 .fire-del { position: absolute; top: -6px; right: -8px; width: 15px; height: 15px; line-height: 15px; text-align: center; font-size: 9px; font-weight: 700; color: #fff; background: #ef4444; border-radius: 50%; cursor: pointer; }
 
 #mapMain { flex: 1; display: flex; overflow: hidden; }
 
+/* ══ 리사이저 ══ */
+.resizer-col { width: 6px; flex-shrink: 0; cursor: col-resize; background: #1e293b; position: relative; }
+.resizer-col:hover, .resizer-col.active { background: #38bdf8; }
+.resizer-col::after { content: ''; position: absolute; top: 0; bottom: 0; left: -3px; right: -3px; }
+.resizer-row { height: 6px; flex-shrink: 0; cursor: row-resize; background: #1e293b; position: relative; }
+.resizer-row:hover, .resizer-row.active { background: #38bdf8; }
+.resizer-row::after { content: ''; position: absolute; left: 0; right: 0; top: -3px; bottom: -3px; }
+
 /* ══ 왼쪽 컬럼: 건물 + 기록 ══ */
-#leftColumn { width: 80%; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid #1e293b; }
+#leftColumn { width: 80%; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
 #buildingArea { position: absolute; inset: 0; overflow-y: auto; padding: 8px 6px 8px 8px; }
 #noBuildingMsg { color: #475569; font-size: 12px; text-align: center; margin-top: 30px; line-height: 1.8; }
 
@@ -71,7 +84,7 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 .placed-chip .remove-x { font-size: 11px; opacity: 0.7; }
 
 /* ══ 기록(타임라인) ══ */
-#timelineSection { flex: 0 0 auto; border-top: 1px solid #1e293b; padding: 8px; display: flex; flex-direction: column; max-height: 40%; }
+#timelineSection { flex: 0 0 auto; padding: 8px; display: flex; flex-direction: column; height: 40%; overflow: hidden; }
 #timelineInputRow { display: flex; gap: 5px; margin-bottom: 6px; }
 #timelineTime { width: 58px; flex-shrink: 0; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 11px; padding: 5px 4px; text-align: center; outline: none; font-family: monospace; }
 #timelineText { flex: 1; min-width: 0; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 12px; padding: 5px 8px; outline: none; }
@@ -89,7 +102,7 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 #timelineEmpty { color: #475569; font-size: 11px; padding: 8px 4px; text-align: center; }
 
 /* ══ 오른쪽 컬럼: 출동대 패널 ══ */
-#unitPanel { width: 20%; overflow-y: auto; padding: 8px; }
+#unitPanel { flex: 1; min-width: 120px; overflow-y: auto; padding: 8px; }
 .unit-section-label { font-size: 10px; color: #64748b; font-weight: 700; letter-spacing: 0.06em; padding: 2px 2px 5px; display: block; }
 .unit-group-label { font-size: 10px; color: #94a3b8; font-weight: 700; margin: 8px 0 4px; padding-left: 2px; }
 .unit-group-label:first-child { margin-top: 0; }
@@ -126,18 +139,21 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
   <div id="mapHeader">
     <div id="headerTop">
       <span id="headerTitle">🗺️ 119 작전도</span>
-      <span id="clock">00:00:00</span>
+      <div id="clockBlock">
+        <div id="clockRow"><span id="clockLabel">현재 시간</span><span id="clock">00:00:00</span></div>
+        <div id="activeTimeRow"><span id="activeTimeLabel">활동 시간</span><span id="activeTime">--:--</span></div>
+      </div>
     </div>
     <div id="floorControls">
       <label>지상 <input class="num-input" id="groundFloors" type="number" min="1" max="150" value="5"> 층</label>
       <label>지하 <input class="num-input" id="basementFloors" type="number" min="0" max="20" value="1"> 층</label>
       <button id="buildBtn">🏢 건물 생성</button>
       <button id="pasteBtn" type="button">📋 붙여넣기</button>
-      <button id="addFireBtn" type="button">🔥 화재지점 추가</button>
     </div>
     <div id="infoRow">
       <div id="incidentTimes">
         <label>신고 <input class="time-input hhmm-input" id="timeReport" type="text" placeholder="15:53"></label>
+        <label>선착대 도착 <input class="time-input hhmm-input" id="timeFirstArrival" type="text" placeholder="16:00"></label>
         <label>대응1단계 <input class="time-input hhmm-input" id="timeLevel1" type="text" placeholder="16:05"></label>
         <label>초진 <input class="time-input hhmm-input" id="timeInitial" type="text" placeholder="16:10"></label>
         <label>완진 <input class="time-input hhmm-input" id="timeComplete" type="text" placeholder="17:00"></label>
@@ -156,9 +172,12 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
   <div id="mapMain">
     <div id="leftColumn">
       <div id="buildingWrapper">
-        <div id="buildingArea"><div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르거나<br>📋 붙여넣기를 누르세요</div></div>
-        <div id="fireIconsLayer"></div>
+        <div id="buildingArea">
+          <div id="fireIconsLayer"></div>
+          <div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르거나<br>📋 붙여넣기를 누르세요</div>
+        </div>
       </div>
+      <div id="rowResizer" class="resizer-row"></div>
       <div id="timelineSection">
         <span class="unit-section-label">기록 — 시간 | 내용 (예: 10:00 | 완진)</span>
         <div id="timelineInputRow">
@@ -169,6 +188,7 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
         <div id="timelineList"></div>
       </div>
     </div>
+    <div id="colResizer" class="resizer-col"></div>
     <div id="unitPanel">
       <span class="unit-section-label">출동대 — 건물 층/단위지휘관 칸으로 끌어다 배치 (더블클릭: 이름 수정)</span>
       <div id="unitSummary" class="unit-summary"></div>
@@ -245,16 +265,39 @@ let agencyTimes = {}; // key -> "HH:MM"
 let placedMap = {};
 let floorTexts = {};      // { floorId: "부상자 텍스트" }
 let timeline = [];        // [{ time, text }]
-let incidentTimes = { report: '', level1: '', initial: '', complete: '', selfEvac: '', hospital: '', injured: '', deceased: '' };
+let incidentTimes = { report: '', firstArrival: '', level1: '', initial: '', complete: '', selfEvac: '', hospital: '', injured: '', deceased: '' };
 let deceasedNote = '';
 let fireIcons = [{ id: 'fire1', left: 10, top: 10 }];
 let built = false, ground = 5, basement = 1;
+let panelSplit = { leftColPercent: 80, timelineHeightPx: null };
 
-/* ══ 시계 ══ */
+/* ══ 시계 + 활동 시간 ══ */
 function updateClock() {
   const now = new Date();
   const p = n => String(n).padStart(2, '0');
   document.getElementById('clock').textContent = p(now.getHours()) + ':' + p(now.getMinutes()) + ':' + p(now.getSeconds());
+  updateActiveTime(now);
+}
+function parseHHMMToDate(str, ref) {
+  if (!str) return null;
+  const m = str.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const h = parseInt(m[1], 10), mi = parseInt(m[2], 10);
+  if (isNaN(h) || isNaN(mi) || h > 23 || mi > 59) return null;
+  const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate(), h, mi, 0, 0);
+  if (d.getTime() > ref.getTime()) d.setDate(d.getDate() - 1); // 자정을 넘긴 경우 전날로 간주
+  return d;
+}
+function updateActiveTime(now) {
+  const el = document.getElementById('activeTime');
+  const start = parseHHMMToDate(incidentTimes.firstArrival, now);
+  if (!start) { el.textContent = '--:--'; return; }
+  let diffMs = now.getTime() - start.getTime();
+  if (diffMs < 0) diffMs = 0;
+  const totalMin = Math.floor(diffMs / 60000);
+  const h = Math.floor(totalMin / 60), m = totalMin % 60;
+  const p = n => String(n).padStart(2, '0');
+  el.textContent = p(h) + '시간 ' + p(m) + '분';
 }
 updateClock();
 setInterval(updateClock, 1000);
@@ -262,7 +305,7 @@ setInterval(updateClock, 1000);
 /* ══ 저장/불러오기 ══ */
 function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ units, placedMap, floorTexts, timeline, incidentTimes, deceasedNote, fireIcons, agencyTimes, built, ground, basement }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ units, placedMap, floorTexts, timeline, incidentTimes, deceasedNote, fireIcons, agencyTimes, built, ground, basement, panelSplit }));
   } catch (e) {}
 }
 function loadState() {
@@ -274,7 +317,7 @@ function loadState() {
   if (s.floorTexts) floorTexts = s.floorTexts;
   if (Array.isArray(s.timeline)) timeline = s.timeline;
   if (s.incidentTimes) {
-    incidentTimes = Object.assign({ report: '', level1: '', initial: '', complete: '', selfEvac: '', hospital: '', injured: '', deceased: '' }, s.incidentTimes);
+    incidentTimes = Object.assign({ report: '', firstArrival: '', level1: '', initial: '', complete: '', selfEvac: '', hospital: '', injured: '', deceased: '' }, s.incidentTimes);
     Object.keys(timeFieldMap).forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = incidentTimes[timeFieldMap[id]] || '';
@@ -287,6 +330,10 @@ function loadState() {
   }
   if (Array.isArray(s.fireIcons) && s.fireIcons.length) fireIcons = s.fireIcons;
   if (s.agencyTimes) agencyTimes = s.agencyTimes;
+  if (s.panelSplit) {
+    panelSplit = Object.assign(panelSplit, s.panelSplit);
+    applyPanelSplit();
+  }
   if (s.built) {
     built = true;
     ground = s.ground || 5;
@@ -421,7 +468,11 @@ function applyPastedPayload(payload) {
 
 function buildFloors(g, b) {
   const area = document.getElementById('buildingArea');
-  area.innerHTML = '';
+  // fireIconsLayer와 안내 문구를 제외한 층 요소만 제거
+  Array.from(area.querySelectorAll('.floor-zone')).forEach(el => el.remove());
+  const noMsg = document.getElementById('noBuildingMsg');
+  if (noMsg) noMsg.remove();
+  const layer = document.getElementById('fireIconsLayer');
   area.appendChild(makeFloor('RF', '옥상', 'roof'));
   for (let f = g; f >= 1; f--) area.appendChild(makeFloor(f + 'F', f + '층', 'ground'));
   for (let b2 = 1; b2 <= b; b2++) area.appendChild(makeFloor('B' + b2, '지하' + b2, 'basement'));
@@ -447,9 +498,9 @@ function applyFloorTexts() {
   });
 }
 
-/* ══ 사건 개요 시간/인원 (신고/대응1단계/초진/완진/자력대피/병원이송/부상/사망) ══ */
+/* ══ 사건 개요 시간/인원 (신고/선착대 도착/대응1단계/초진/완진/자력대피/병원이송/부상/사망) ══ */
 const timeFieldMap = {
-  timeReport: 'report', timeLevel1: 'level1', timeInitial: 'initial', timeComplete: 'complete',
+  timeReport: 'report', timeFirstArrival: 'firstArrival', timeLevel1: 'level1', timeInitial: 'initial', timeComplete: 'complete',
   timeSelfEvac: 'selfEvac', timeHospital: 'hospital', timeInjured: 'injured', timeDeceased: 'deceased'
 };
 
@@ -483,8 +534,8 @@ document.getElementById('deceasedNote').addEventListener('input', () => {
   saveState();
 });
 
-/* ══ 화재 발생 위치 아이콘 — 여러 개 배치/이동/삭제 가능 ══ */
-const buildingWrapper = document.getElementById('buildingWrapper');
+/* ══ 화재 발생 위치 아이콘 — 이동만 가능(건물 스크롤과 함께 움직임) ══ */
+const buildingArea = document.getElementById('buildingArea');
 let fireDragState = null;
 
 function renderFireIcons() {
@@ -496,19 +547,17 @@ function renderFireIcons() {
     el.style.left = f.left + 'px';
     el.style.top = f.top + 'px';
     el.dataset.fireId = f.id;
-    el.title = '드래그해서 이동 · ✕로 삭제';
-    el.innerHTML = '🔥<span class="fire-del">✕</span>';
-    el.querySelector('.fire-del').addEventListener('click', e => {
-      e.stopPropagation();
-      fireIcons = fireIcons.filter(x => x.id !== f.id);
-      renderFireIcons();
-      saveState();
-    });
+    el.title = '드래그해서 이동';
+    el.innerHTML = '🔥';
     el.addEventListener('pointerdown', e => {
-      if (e.target.classList.contains('fire-del')) return;
       e.preventDefault();
-      const rect = el.getBoundingClientRect();
-      fireDragState = { id: f.id, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+      const areaRect = buildingArea.getBoundingClientRect();
+      const curLeft = f.left, curTop = f.top;
+      fireDragState = {
+        id: f.id,
+        offsetX: (e.clientX - areaRect.left + buildingArea.scrollLeft) - curLeft,
+        offsetY: (e.clientY - areaRect.top + buildingArea.scrollTop) - curTop
+      };
       document.addEventListener('pointermove', onFireMove);
       document.addEventListener('pointerup', onFireUp);
     });
@@ -519,11 +568,11 @@ function onFireMove(e) {
   if (!fireDragState) return;
   const f = fireIcons.find(x => x.id === fireDragState.id);
   if (!f) return;
-  const wrapRect = buildingWrapper.getBoundingClientRect();
-  let x = e.clientX - wrapRect.left - fireDragState.offsetX;
-  let y = e.clientY - wrapRect.top - fireDragState.offsetY;
-  x = Math.max(0, Math.min(x, wrapRect.width - 30));
-  y = Math.max(0, Math.min(y, wrapRect.height - 30));
+  const areaRect = buildingArea.getBoundingClientRect();
+  let x = (e.clientX - areaRect.left + buildingArea.scrollLeft) - fireDragState.offsetX;
+  let y = (e.clientY - areaRect.top + buildingArea.scrollTop) - fireDragState.offsetY;
+  x = Math.max(0, Math.min(x, buildingArea.scrollWidth - 30));
+  y = Math.max(0, Math.min(y, buildingArea.scrollHeight - 30));
   f.left = x; f.top = y;
   const el = document.querySelector('.fire-icon-item[data-fire-id="' + cssEsc(f.id) + '"]');
   if (el) { el.style.left = x + 'px'; el.style.top = y + 'px'; }
@@ -534,12 +583,6 @@ function onFireUp() {
   fireDragState = null;
   saveState();
 }
-document.getElementById('addFireBtn').addEventListener('click', () => {
-  const n = fireIcons.length;
-  fireIcons.push({ id: 'fire' + Date.now() + Math.floor(Math.random() * 1000), left: 10 + (n * 22) % 160, top: 10 + (n * 22) % 160 });
-  renderFireIcons();
-  saveState();
-});
 
 document.getElementById('resetBtn').addEventListener('click', () => {
   const ok = window.confirm('배치, 부상자 기록, 타임라인 기록, 오른쪽 출동대 목록, 건물 정보, 사건 시간/인원/비고, 협력기관 기록, 화재 위치 표시까지 모두 초기화합니다.\n(새로운 화재 발생 시 사용)\n계속하시겠습니까?');
@@ -548,12 +591,18 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   placedMap = {};
   floorTexts = {};
   timeline = [];
-  incidentTimes = { report: '', level1: '', initial: '', complete: '', selfEvac: '', hospital: '', injured: '', deceased: '' };
+  incidentTimes = { report: '', firstArrival: '', level1: '', initial: '', complete: '', selfEvac: '', hospital: '', injured: '', deceased: '' };
   deceasedNote = '';
   fireIcons = [{ id: 'fire1', left: 10, top: 10 }];
   agencyTimes = {};
   built = false;
-  document.getElementById('buildingArea').innerHTML = '<div id="noBuildingMsg">⬆️ 층수를 입력하고<br>건물 생성을 누르거나<br>📋 붙여넣기를 누르세요</div>';
+  Array.from(document.querySelectorAll('#buildingArea .floor-zone')).forEach(el => el.remove());
+  if (!document.getElementById('noBuildingMsg')) {
+    const msg = document.createElement('div');
+    msg.id = 'noBuildingMsg';
+    msg.innerHTML = '⬆️ 층수를 입력하고<br>건물 생성을 누르거나<br>📋 붙여넣기를 누르세요';
+    document.getElementById('buildingArea').appendChild(msg);
+  }
   Object.keys(timeFieldMap).forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('deceasedNote').value = '';
   renderFireIcons();
@@ -832,6 +881,72 @@ function editTimelineField(idx, field, spanEl) {
   };
   input.addEventListener('blur', commit);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
+}
+
+/* ══ 패널 리사이저(좌우/상하) ══ */
+const leftColumn = document.getElementById('leftColumn');
+const unitPanel = document.getElementById('unitPanel');
+const mapMain = document.getElementById('mapMain');
+const colResizer = document.getElementById('colResizer');
+const timelineSection = document.getElementById('timelineSection');
+const rowResizer = document.getElementById('rowResizer');
+
+function applyPanelSplit() {
+  leftColumn.style.width = panelSplit.leftColPercent + '%';
+  if (panelSplit.timelineHeightPx) {
+    timelineSection.style.height = panelSplit.timelineHeightPx + 'px';
+  }
+}
+
+let colDrag = null;
+colResizer.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  colDrag = { startX: e.clientX, startWidth: leftColumn.getBoundingClientRect().width, mainWidth: mapMain.getBoundingClientRect().width };
+  colResizer.classList.add('active');
+  document.addEventListener('pointermove', onColMove);
+  document.addEventListener('pointerup', onColUp);
+});
+function onColMove(e) {
+  if (!colDrag) return;
+  const dx = e.clientX - colDrag.startX;
+  let newWidth = colDrag.startWidth + dx;
+  const minW = colDrag.mainWidth * 0.35, maxW = colDrag.mainWidth * 0.9;
+  newWidth = Math.max(minW, Math.min(newWidth, maxW));
+  const pct = (newWidth / colDrag.mainWidth) * 100;
+  leftColumn.style.width = pct + '%';
+  panelSplit.leftColPercent = pct;
+}
+function onColUp() {
+  document.removeEventListener('pointermove', onColMove);
+  document.removeEventListener('pointerup', onColUp);
+  colResizer.classList.remove('active');
+  colDrag = null;
+  saveState();
+}
+
+let rowDrag = null;
+rowResizer.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  rowDrag = { startY: e.clientY, startHeight: timelineSection.getBoundingClientRect().height, colHeight: leftColumn.getBoundingClientRect().height };
+  rowResizer.classList.add('active');
+  document.addEventListener('pointermove', onRowMove);
+  document.addEventListener('pointerup', onRowUp);
+});
+function onRowMove(e) {
+  if (!rowDrag) return;
+  const dy = e.clientY - rowDrag.startY;
+  let newHeight = rowDrag.startHeight - dy;
+  const minH = 80, maxH = rowDrag.colHeight * 0.75;
+  newHeight = Math.max(minH, Math.min(newHeight, maxH));
+  timelineSection.style.height = newHeight + 'px';
+  panelSplit.timelineHeightPx = newHeight;
+}
+function onRowUp() {
+  document.removeEventListener('pointermove', onRowMove);
+  document.removeEventListener('pointerup', onRowUp);
+  rowResizer.classList.remove('active');
+  rowDrag = null;
+  saveState();
 }
 
 /* ══ 초기화 ══ */
