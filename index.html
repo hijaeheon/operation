@@ -73,9 +73,14 @@ html, body { width: 100%; height: 100%; font-family: "Apple SD Gothic Neo", "Pre
 .commander-slot .placed-chip { padding: 2px 4px; font-size: 8px; }
 .commander-slot .cs-hint { font-size: 9px; opacity: 0.35; pointer-events: none; }
 
-.floor-content { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 4px 5px; min-height: 46px; transition: background 0.12s; }
+.floor-content { flex: 1; display: flex; align-items: stretch; min-height: 46px; min-width: 0; }
 .floor-zone.roof .floor-content { min-height: 34px; }
-.floor-content.drag-over, .staging-content.drag-over { background: rgba(56,189,248,0.12); }
+.floor-cell { flex: 1 1 0; min-width: 0; position: relative; display: flex; flex-wrap: wrap; align-items: center; align-content: center; gap: 3px; padding: 4px 3px; border-left: 1px dashed #1e293b; transition: background 0.12s; }
+.floor-cell:first-child { border-left: none; }
+.floor-cell::before { content: attr(data-zone); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: rgba(148,163,184,0.13); pointer-events: none; z-index: 0; font-family: monospace; }
+.floor-cell > * { position: relative; z-index: 1; }
+.floor-cell.drag-over, .staging-content.drag-over { background: rgba(56,189,248,0.12); }
+.floor-zone.roof .floor-cell::before { font-size: 20px; }
 
 .injury-input { width: 300px; flex-shrink: 0; background: #0f172a; border: none; border-left: 1px solid #1e293b; color: #facc15; font-size: 11px; padding: 2px 4px; text-align: center; outline: none; font-family: inherit; }
 .injury-input::placeholder { color: #475569; font-size: 9px; }
@@ -262,6 +267,7 @@ const AGENCY_LIST = [
 let agencyTimes = {}; // key -> "HH:MM"
 
 // placedMap[unitName] = { type: 'floor'|'commander'|'staging'|'medical'|'rit'|'agency', floorId?: string }
+const ZONES = ['A', 'B', 'C', 'D'];
 let placedMap = {};
 let floorTexts = {};      // { floorId: "부상자 텍스트" }
 let timeline = [];        // [{ time, text }]
@@ -481,10 +487,13 @@ function buildFloors(g, b) {
 function makeFloor(id, label, type) {
   const d = document.createElement('div');
   d.className = 'floor-zone ' + type;
+  const cells = ZONES.map(z =>
+    '<div class="floor-cell" id="fc-' + id + '-' + z + '" data-zone="' + z + '" data-drop-type="floor" data-floor-id="' + id + '"></div>'
+  ).join('');
   d.innerHTML =
     '<div class="floor-label">' + label + '</div>' +
     '<div class="commander-slot" data-drop-type="commander" data-floor-id="' + id + '"><span class="cs-hint">⭐</span></div>' +
-    '<div class="floor-content" id="fc-' + id + '" data-drop-type="floor" data-floor-id="' + id + '"></div>' +
+    '<div class="floor-content">' + cells + '</div>' +
     '<input class="injury-input" id="inj-' + id + '" data-floor-id="' + id + '" placeholder="부상자">';
   const inj = d.querySelector('.injury-input');
   inj.addEventListener('input', () => { floorTexts[id] = inj.value; saveState(); });
@@ -626,7 +635,7 @@ function addCustomUnit() {
 
 /* ══ 배치 렌더링 (placedMap이 유일한 소스) ══ */
 function renderPlacements() {
-  document.querySelectorAll('.floor-content, .commander-slot').forEach(el => {
+  document.querySelectorAll('.floor-cell, .commander-slot').forEach(el => {
     if (el.classList.contains('commander-slot')) {
       el.innerHTML = '<span class="cs-hint">⭐</span>';
     } else {
@@ -638,7 +647,7 @@ function renderPlacements() {
   Object.keys(placedMap).forEach(unitName => {
     const loc = placedMap[unitName];
     let target = null;
-    if (loc.type === 'floor') target = document.getElementById('fc-' + loc.floorId);
+    if (loc.type === 'floor') target = document.getElementById('fc-' + loc.floorId + '-' + (loc.zone || 'A'));
     else if (loc.type === 'commander') target = document.querySelector('.commander-slot[data-floor-id="' + cssEsc(loc.floorId) + '"]');
     else if (loc.type === 'staging') target = document.getElementById('staging-content');
     else if (loc.type === 'medical') target = document.getElementById('medical-content');
@@ -732,7 +741,7 @@ function onPtrUp(e) {
   const target = el ? el.closest('[data-drop-type]') : null;
   if (target) {
     const type = target.dataset.dropType;
-    if (type === 'floor') placeUnit(dragging.name, { type: 'floor', floorId: target.dataset.floorId });
+    if (type === 'floor') placeUnit(dragging.name, { type: 'floor', floorId: target.dataset.floorId, zone: target.dataset.zone });
     else if (type === 'commander') placeUnit(dragging.name, { type: 'commander', floorId: target.dataset.floorId });
     else if (type === 'staging') placeUnit(dragging.name, { type: 'staging' });
     else if (type === 'medical') placeUnit(dragging.name, { type: 'medical' });
